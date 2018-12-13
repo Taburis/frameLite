@@ -12,7 +12,7 @@ class ParaSetBase{
 		public: 
 				ParaSetBase(){};
 				ParaSetBase(const char * name) : set_name(name){};
-				~ParaSetBase(){
+				virtual ~ParaSetBase(){
 						table.clear();
 				}
 				bool exists(std::string name){
@@ -69,12 +69,19 @@ class ParaSetBase{
 class ParaSet : public ParaSetBase{
 		public: ParaSet(): ParaSetBase(){};
 				ParaSet(const char * name) : ParaSetBase(name){};
-				~ParaSet(){
+				virtual ~ParaSet(){
 						for(auto it = vtable.begin(); it!= vtable.end(); ++it){
 								//(*it).second->clear();
 								//swap with an empty vector will free the memory of the vector
 								std::vector<any>().swap(*((*it).second));
+								delete (*it).second;
 						}
+						vtable.clear();
+				}
+				bool exists(std::string name){
+						if(!(table.find(name) == table.end())) return 1;
+						else if(!(vtable.find(name) == vtable.end())) return 1;
+						else return 0;
 				}
 				ParaSet& operator=(const ParaSet& rhs){
 						set_name = rhs.set_name;
@@ -94,10 +101,20 @@ class ParaSet : public ParaSetBase{
 								}
 								return any_cast<T>(vtable[pname]->at(i));
 						}
+				std::unordered_map<std::string, std::vector<any>*> clone_vtable(){
+						std::unordered_map<std::string, std::vector<any>*> vtable1;
+						for( auto &it : vtable){
+								auto vec = new std::vector<any>(*(it.second));
+								vtable1[it.first] = vec;
+						}
+						return vtable1;
+				}
 				ParaSet* clone(){
 						auto cps = new ParaSet();
 						cps->table = table;
-						cps->vtable = vtable;
+						if(vtable.size()!=0){
+								cps->vtable = clone_vtable();
+						}
 						return cps;
 				}
 				size_t length(const char* pname){
@@ -157,6 +174,36 @@ class ParaSet : public ParaSetBase{
 								}	
 								return p_;
 						}
+				bool checkConflict(ParaSet &b){
+						// return 1 if the key exists in both this and a;
+						for(auto & it: b.table )  if(exists(it.first)) return 1;
+						for(auto & it: b.vtable ) if(exists(it.first)) return 1;
+						return 0;
+				}
+
+				void clear(){
+						table.clear();
+						for(auto it = vtable.begin(); it!= vtable.end(); ++it){
+								//(*it).second->clear();
+								//swap with an empty vector will free the memory of the vector
+								std::vector<any>().swap(*((*it).second));
+						}
+						vtable.clear();
+				}
+
+				ParaSet operator+(ParaSet & rhs){
+						ParaSet sum = rhs;
+						
+						if(checkConflict(rhs)){
+								sum.clear();
+							   	return sum;
+						}
+						sum.table.insert(table.begin(), table.end());
+						sum.vtable = rhs.clone_vtable();
+						auto vtable2 = clone_vtable();
+						sum.vtable.insert(vtable2.begin(), vtable2.end());
+						return sum;
+				}
 
 		public: 
 				std::unordered_map<std::string, std::vector<any>*> vtable;
