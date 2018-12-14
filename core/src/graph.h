@@ -1,7 +1,7 @@
 
 #include "node.h"
 
-class graph : public nodeBase {
+class graph {
 		public : graph(){};
 				 ~graph(){};
 				 void forwardPropagate(nodeBase &nd, int nstep = 0){
