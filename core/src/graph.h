@@ -1,9 +1,9 @@
 
 #include "node.h"
 
-class graph {
-		public : graph(){};
-				 ~graph(){};
+class graphBase {
+		public : graphBase(){};
+				 virtual ~graphBase(){};
 				 void forwardPropagate(nodeBase &nd, int nstep = 0){
 						 if(nd.isReady()) {
 								 nd.is_done_=1;
@@ -43,7 +43,7 @@ class graph {
 						 for(auto it = node_list.begin(); it!= node_list.end(); ++it){
 								 if((*it).second->Ndependency()!=0)continue;
 								 if(ptr !=0) {
-										 std::cout<<"not unique header in graph"<<std::endl;
+										 std::cout<<"not unique header in graphBase"<<std::endl;
 										 return NULL;
 								 }
 								 else ptr = (*it).second;
@@ -63,9 +63,21 @@ class graph {
 				 int evaluate(){ run_forward_chain(); return 0;}
 
 		public : 
-				 nodeBase* graph_header;
+				 nodeBase* graphBase_header;
 				 std::unordered_map<std::string, nodeBase *> node_list;
 				 std::vector<nodeBase *> forward_chain;
 				 std::unordered_map<long , nodeBase *> id_map;
 };
 
+class graph: public graphBase{
+		public : graph(){};
+				 virtual ~graph(){};
+				 nodeBase & find_header(nodeBase & np){
+						 //find out the header by input part of the node
+						 if(np.up_stream.size() == 0) return np;
+						 else return find_header( *(np.up_stream.at(0)));
+				 }
+				 graph( node & nd){
+						 makeChain(find_header(nd));
+				 }
+};
