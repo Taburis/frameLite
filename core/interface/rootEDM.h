@@ -24,7 +24,7 @@ class rootEDMProducer : public rootEDMPlugin {
 };
 
 class rootEDMAnalyzer : public node{
-		public : rootEDMAnalyzer(){};
+		public : rootEDMAnalyzer(){_nodeClassName_ = "rootEDMAnalyzer"};
 				 virtual ~rootEDMAnalyzer(){};
 };
 
@@ -40,7 +40,7 @@ class rootEDMEventFilter : public rootEDMPlugin {
 
 class rootEDMFrame : public node{
 		// every edm has to be run with a frame 
-		public : rootEDMFrame(){};
+		public : rootEDMFrame(){ _nodeClassName_ = "rootEDMFrame";};
 				 ~rootEDMFrame(){
 						 std::cout<<"deleting rootEDMFrame"<<std::endl;
 						 for(auto & it : _analyzer) delete it;

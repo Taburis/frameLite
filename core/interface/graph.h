@@ -10,7 +10,7 @@ class graphBase {
 								 forward_chain.push_back(&nd);
 						 }
 						 else return;
-						 //		cout<<nd.name_<<": "<<nd.is_done_<<", ";
+						 //		cout<<nd._name_<<": "<<nd.is_done_<<", ";
 						 if(nd.down_stream.size() == 0){
 								 //				cout<<endl;
 								 return;
@@ -32,7 +32,7 @@ class graphBase {
 				 }
 				 void printChain(){
 						 for(auto it= forward_chain.begin(); it!= forward_chain.end(); ++it){
-								 std::cout<<(*it)->name_<<", ";
+								 std::cout<<(*it)->_name_<<", ";
 						 }
 						 std::cout<<"END"<<std::endl;
 				 }

@@ -1,5 +1,4 @@
 
-SRCS=$(wildcard ./$(MAKECMDGOALS))
 #ifneq ($(MAKECMSGOALS), clean)
 #		include $(SRCS:.C=.)
 
@@ -10,22 +9,28 @@ CFLAGS = -fpic -g $(ROOT)
 LDFLAGS = -shared $(ROOT)
 DEPS = $(shell echo *.h)
 LPATH =$(PWD)/../lib/ 
-#INCLUDE= -I $(PWD)/../plugin/ -I $(PWD)/../core/interface/
+INCLUDE= -I $(PWD)/../plugin/ -I $(PWD)/../core/interface/
 INCLUDE=-I/Users/tabris/frameLite/plugin -I/Users/tabris/frameLite/core/interface
 
-OBJS=$(SRCS:%.C=%)
+SRCS=$(wildcard *.C)
+OBJS=$(SRCS:%.C=%.o)
+BINS=$(SRCS:%.C=%)
 
-all: $(OBJS)
+#all: $(OBJS) $(BINS)
 
-%: %.o $(PWD)/../lib/libedm.so
-	$(CC) -o -I $(LPATH) -L $(LPATH) -ledm $(ROOT) $(INCLUDE) $< $@
-
-%.o: %.C 
+$(OBJS): $(SRCS) 
 	@echo $(SRCS)
 	$(CC) $(ROOT) $(INCLUDE) -c $< -o $@ 
 
+$(BINS): $(OBJS) $(PWD)/../lib/libedm.so
+	$(CC) -I $(LPATH) -L $(LPATH) -ledm $(ROOT) $(INCLUDE) $< -o $@
+
 .PHONY: clean
-.PHONY: test
+.PHONY: test.C
+
+test.C:
+	@echo $(OBJS)
+	@echo $(BINS)
 
 
 clean:

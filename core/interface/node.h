@@ -19,7 +19,7 @@ class nodeBase {
 				 std::vector<nodeBase*>& dependency(){ return up_stream;}
 				 std::vector<nodeBase*>& downStream(){ return down_stream;}
 
-				 std::string name_;
+				 std::string _name_;
 				 bool is_done_ = 0;
 		public:
 				 // the up & down streams stands for the nodes connect to / from this node.
@@ -56,12 +56,13 @@ class node : public nodeBase{
 				 ~node(){};
 				 void add_cfg(ParaSet & ps) {pset_ = &ps; }
 				 node & operator+(node& rhs){
-						 //cout<<this->name_<<" + "<<rhs.name_<<endl;
+						 //cout<<this->_name_<<" + "<<rhs._name_<<endl;
 						 connect(rhs, 1);
 						 return rhs;
 				 }
 		public : 
 				 ParaSet *pset_ ; 
+				 std::string _nodeClassName_ = "node";
 };
 
 #endif
