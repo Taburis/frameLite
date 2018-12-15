@@ -26,7 +26,7 @@ class rootEDMProducer : public rootEDMPlugin {
 class rootEDMAnalyzer : public node{
 		public : rootEDMAnalyzer(){};
 				 virtual ~rootEDMAnalyzer(){};
-}
+};
 
 class rootEDMEventFilter : public rootEDMPlugin {
 		public : rootEDMEventFilter(){};

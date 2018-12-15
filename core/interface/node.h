@@ -56,7 +56,7 @@ class node : public nodeBase{
 				 ~node(){};
 				 void add_cfg(ParaSet & ps) {pset_ = &ps; }
 				 node & operator+(node& rhs){
-						 cout<<this->name_<<" + "<<rhs.name_<<endl;
+						 //cout<<this->name_<<" + "<<rhs.name_<<endl;
 						 connect(rhs, 1);
 						 return rhs;
 				 }
