@@ -77,7 +77,5 @@ class graph: public graphBase{
 						 if(np.up_stream.size() == 0) return np;
 						 else return find_header( *(np.up_stream.at(0)));
 				 }
-				 graph( node & nd){
-						 makeChain(find_header(nd));
-				 }
+				 graph( node & nd){ makeChain(find_header(nd));}
 };

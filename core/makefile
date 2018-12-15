@@ -6,6 +6,8 @@ LDFLAGS = -shared $(ROOT)
 DEPS = $(shell echo *.h)
 LPATH = $(shell echo /Users/tabris/xflow/core/src/)
 INCLUDE=-I /Users/tabris/cmsProjects/frameLite/core/src/ -I /Users/tabris/cmsProjects/frameLite/plugin/
+SRC=src
+BIN=bin
 #CFLAGSFORDYLIB = -c -shared -fpic $(ROOT)
 
 all: bin/rootEDM.o libedm.so
