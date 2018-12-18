@@ -72,10 +72,19 @@ class graphBase {
 class graph: public graphBase{
 		public : graph(){};
 				 virtual ~graph(){};
+				 void freeGraph(){
+						 for(auto & it: forward_chain){
+								 delete it;
+						 }
+						 forward_chain.clear();
+				 }
 				 nodeBase & find_header(nodeBase & np){
 						 //find out the header by input part of the node
 						 if(np.up_stream.size() == 0) return np;
 						 else return find_header( *(np.up_stream.at(0)));
 				 }
 				 graph( node & nd){ makeChain(find_header(nd));}
+				 void runChain(){
+						 for(auto & it : forward_chain) it.evaluate();
+				 }
 };

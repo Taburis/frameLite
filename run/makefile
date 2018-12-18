@@ -26,12 +26,6 @@ $(BINS): $(OBJS) $(PWD)/../lib/libedm.so
 	$(CC) -I $(LPATH) -L $(LPATH) -ledm $(ROOT) $(INCLUDE) $< -o $@
 
 .PHONY: clean
-.PHONY: test.C
-
-test.C:
-	@echo $(OBJS)
-	@echo $(BINS)
-
 
 clean:
 	rm -rf *.o *.*~ ../plugin/*.*~

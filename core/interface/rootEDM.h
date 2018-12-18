@@ -24,8 +24,10 @@ class rootEDMProducer : public rootEDMPlugin {
 };
 
 class rootEDMAnalyzer : public node{
-		public : rootEDMAnalyzer(){_nodeClassName_ = "rootEDMAnalyzer"};
+		public : rootEDMAnalyzer(){_nodeClassName_ = "rootEDMAnalyzer";};
 				 virtual ~rootEDMAnalyzer(){};
+				 virtual int analyze() = 0;
+				 virtual int evaluate() { return analyze();}
 };
 
 class rootEDMEventFilter : public rootEDMPlugin {
