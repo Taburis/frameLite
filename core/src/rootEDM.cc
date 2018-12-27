@@ -53,7 +53,7 @@ void rootEDMFrame::runEventSection(){
 					   if(!(*_ip)->filter()) return;
 		if( _analyzer.size() != 0 )
 				for(auto _ip =  _analyzer.begin(); _ip!=_analyzer.end(); ++_ip)
-						(*_ip)->analyzer();
+						(*_ip)->analyze();
 }
 
 void rootEDMFrame::eventLoop(){

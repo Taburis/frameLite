@@ -1,10 +1,13 @@
 
 //#include <mach/mach.h>
+#ifndef rootEDM_H
+#define rootEDM_H
 #include <vector>
 #include <unordered_map>
 #include <iostream>
 #include "TTree.h"
 #include "node.h"
+#include "ParaSet.h"
 
 
 class rootEDMPlugin { 
@@ -19,15 +22,17 @@ class rootEDMProducer : public rootEDMPlugin {
 				 virtual ~rootEDMProducer () {};
 				 TTree* handle(const char * t);
 				 virtual void beginJob() = 0; 
-				 virtual void analyzer() = 0; 
+				 virtual void analyze() = 0; 
 				 virtual void endJob() = 0;
 };
 
 class rootEDMAnalyzer : public node{
 		public : rootEDMAnalyzer(){_nodeClassName_ = "rootEDMAnalyzer";};
 				 virtual ~rootEDMAnalyzer(){};
-				 virtual int analyze() = 0;
+				 virtual int analyze()=0;
 				 virtual int evaluate() { return analyze();}
+				 void handle_cfg(ParaSet & ps ) { cfg = &ps;}
+				 ParaSet * cfg;
 };
 
 class rootEDMEventFilter : public rootEDMPlugin {
@@ -72,3 +77,4 @@ class rootEDMFrame : public node{
 };
 
 
+#endif

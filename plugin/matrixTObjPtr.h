@@ -3,22 +3,25 @@
 #define MATRIXTOBJPTR_H
 #include <string>
 #include <iostream>
+#include "TFile.h"
 
 template<typename T>
-class matrixPtrHolder {
-		public : matrixPtrHolder(int n, int m): nrow(n), ncol(m){ref.resize(n*m);}
-				 virtual ~matrixPtrHolder(){}
+class matrixPtrHolder{
+		public : matrixPtrHolder(){};
+				 matrixPtrHolder(int n, int m){ setup(n,m);}
+				 virtual ~matrixPtrHolder(){};
+				 void setup(int n, int m){nrow = n, ncol=m, ref.resize(n*m);};
 				 int flatten(int n, int m){
-						if(n > nrow-1 || m > ncol -1 ) {
-								std::cout<<" ==== ERROR: index exceeds the range!!! current shape ["<<nrow<<", "<<ncol<<"] ===="<<std::endl;
-								return 0;
-						}
+						 if(n > nrow-1 || m > ncol -1 ) {
+								 std::cout<<" ==== ERROR: index exceeds the range!!! current shape ["<<nrow<<", "<<ncol<<"] ===="<<std::endl;
+								 return 0;
+						 }
 						 // the start index of row/column is 0 rather than 1
 						 return n+m*nrow;}
 				 T* at(int n, int m){return ref[flatten(n, m)];}
 				 T* operator()(int n, int m){ return at(n, m);}
 				 void add(T* ptr, int i, int j){
-						// ref.push_back(ptr);
+						 // ref.push_back(ptr);
 						 ref[flatten(i,j)] = ptr;
 				 }
 				 void cleanAll(){for(auto & it: ref) delete it;}
@@ -43,24 +46,28 @@ class matrixPtrHolder {
 
 template<typename T> 
 class matrixTObjPtr : public matrixPtrHolder<T>{
-		public : matrixTObjPtr(const char * _name, int n, int m): matrixPtrHolder<T>(n,m) {
-						 name = _name;
-				 };
-				 virtual ~matrixTObjPtr(){};
-				 void autoLoad(TFile* f){
-						 for(int j=0; j<matrixPtrHolder<T>::ncol; ++j){
-								 for(int i=0; i<matrixPtrHolder<T>::nrow; i++){
-										 auto hn = name+"_"+i+"_"+j;
-										 auto ptr = (T*)f->Get(hn);
-										 TString hname = ptr->GetName();
-										 std::cout<<"adding "+hname<<std::endl;
-										 this->add(ptr, i,j);
-								 }
-						 }
-				 };
-				 //				 void write(){ for(auto & it:ref) it->Write();}
+		public :
+				matrixTObjPtr(): matrixPtrHolder<T>(){};	
+				matrixTObjPtr(const char * _name, int n, int m): matrixPtrHolder<T>(n,m) {
+						name = _name;
+				};
+				virtual ~matrixTObjPtr(){};
+				void setup(const char* _name, int n, int m){name = _name, matrixPtrHolder<T>::setup(n,m);};
+				void autoLoad(TFile* f){
+						for(int j=0; j<matrixPtrHolder<T>::ncol; ++j){
+								for(int i=0; i<matrixPtrHolder<T>::nrow; i++){
+										auto hn = name+"_"+i+"_"+j;
+										//std::cout<<"adding "+hn<<std::endl;
+										auto ptr = (T*) f->Get(hn);
+										TString hname = ptr->GetName();
+										std::cout<<"adding "+hname<<std::endl;
+										this->add(ptr, i,j);
+								}
+						}
+				};
+				//				 void write(){ for(auto & it:ref) it->Write();}
 
-				 std::string name;
+				std::string name;
 };
 
 #endif

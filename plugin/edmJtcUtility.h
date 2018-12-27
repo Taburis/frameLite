@@ -1,5 +1,11 @@
 
-namespace utility {
+#include "TH2.h"
+#include "TH2D.h"
+#include "TH1D.h"
+#include "TString.h"
+#include "TString.h"
+
+namespace jtc_utility {
 
 		void invariant_TH2(TH2* h){
 				h->Scale(1.0/h->GetXaxis()->GetBinWidth(1)/h->GetYaxis()->GetBinWidth(1));
@@ -13,6 +19,9 @@ namespace utility {
 				TString name = h2->GetName();
 				TH2D* ME = (TH2D*) h2->Clone(name);
 				float mean=0;
+				// the middle position left/right edge
+				float midLeft = -0.15;
+				float midRight = 0.15;
 				int binLeft = temp->FindBin(midLeft);
 				int binRight= temp->FindBin(midRight)+1;
 				for(int i=binLeft;i<binRight; i++){
@@ -36,6 +45,8 @@ namespace utility {
 				return ME;
 		}
 		TH2D* mixingTableMaker(TH2D* mix, bool doSmooth){
+				float midLeft = -0.15;
+				float midRight = 0.15;
 				//make the mixing table invariant
 				mix->Scale(1.0/mix->Integral()/mix->GetXaxis()->GetBinWidth(1)/mix->GetYaxis()->GetBinWidth(1));
 				TH1D* temp = (TH1D*)mix->ProjectionX("_eta");
@@ -113,18 +124,6 @@ namespace utility {
 				aux_proj->Delete();
 				return bkg;
 		}
-		TH1D* doDrIntegral(TString name , TH2D* sig){
-				TString title = sig->GetTitle();
-				TString hname = "dr_"+name;
-				dr_integral = drDistMaker(sig, hname, title, ndr, drbin );
-				dr_integral->GetXaxis()->SetTitle("#Deltar");
-				return dr_integral;
-		}
-		TH1D* drDistMaker(TH2D* signal, TString name, TString title, int nbin, const float * bins){
-				TH1D* drDist = new TH1D(name, title, nbin, bins);
-				drIntegral(signal, drDist);
-				return drDist;
-		}
 		void drIntegral(TH2D* signal, TH1D* drDist, bool isStatError){
 				// this should return the invariant dr distribution (dr bin width will be divided out )
 				float content;
@@ -170,9 +169,22 @@ namespace utility {
 				}
 				return;
 		}
+		TH1D* drDistMaker(TH2D* signal, TString name, TString title, int nbin, const float * bins){
+				TH1D* drDist = new TH1D(name, title, nbin, bins);
+				drIntegral(signal, drDist, 1);
+				return drDist;
+		}
+		TH1D* doDrIntegral(TString name , TH2D* sig, int ndr, float * drbin){
+				TString title = sig->GetTitle();
+				TString hname = "dr_"+name;
+				auto dr_integral = drDistMaker(sig, hname, title, ndr, drbin );
+				dr_integral->GetXaxis()->SetTitle("#Deltar");
+				return dr_integral;
+		}
 
 		Double_t seagull_pol2_par3(Double_t *x, Double_t *par){
 				//fitting function is: a0+a1*|x-x0|+a2*x+a3*x^2;
+				// total 3 parameters: npar = 3 
 				float x0 = 0.5;
 				if(x[0] < x0 && x[0] > -x0) return par[0];
 				else if( x[0]<-x0 ) return -par[1]*(x[0]+x0)+par[0]+par[2]*pow(x[0]+x0, 2);
