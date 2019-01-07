@@ -69,7 +69,7 @@ class graphBase {
 				 std::unordered_map<long , nodeBase *> id_map;
 };
 
-class graph: public graphBase{
+class graph: public graphBase, public node{
 		public : graph(){};
 				 virtual ~graph(){};
 				 void freeGraph(){

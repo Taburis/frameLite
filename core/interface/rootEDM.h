@@ -30,7 +30,11 @@ class rootEDMAnalyzer : public node{
 		public : rootEDMAnalyzer(){_nodeClassName_ = "rootEDMAnalyzer";};
 				 virtual ~rootEDMAnalyzer(){};
 				 virtual int analyze()=0;
-				 virtual int evaluate() { return analyze();}
+				 void printClassName(){
+						 std::cout<<"processing "<<_nodeClassName_<<"..."<<std::endl;
+				 }
+				 virtual int evaluate() { 
+						 return analyze();}
 				 void handle_cfg(ParaSet & ps ) { cfg = &ps;}
 				 ParaSet * cfg;
 };

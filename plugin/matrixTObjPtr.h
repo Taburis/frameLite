@@ -4,6 +4,8 @@
 #include <string>
 #include <iostream>
 #include "TFile.h"
+#include "TCanvas.h"
+#include "TH1.h"
 
 template<typename T>
 class matrixPtrHolder{
@@ -51,8 +53,21 @@ class matrixTObjPtr : public matrixPtrHolder<T>{
 				matrixTObjPtr(const char * _name, int n, int m): matrixPtrHolder<T>(n,m) {
 						name = _name;
 				};
-				virtual ~matrixTObjPtr(){};
+				virtual ~matrixTObjPtr(){
+						if(doFree) for(auto & it : matrixPtrHolder<T>::ref) delete it;
+				};
+				matrixTObjPtr * deep_clone(const char * name_){
+						auto m2 = new matrixTObjPtr<T>();
+						m2->setup(name_, matrixPtrHolder<T>::nrow, matrixPtrHolder<T>::ncol);
+						return m2;
+				}
 				void setup(const char* _name, int n, int m){name = _name, matrixPtrHolder<T>::setup(n,m);};
+				matrixTObjPtr * operator+( matrixTObjPtr & rhs){
+					//check if the matrix shapes are the same
+					if( matrixPtrHolder<T>::ncol != rhs.ncol || matrixPtrHolder<T>::nrow != rhs.nrow) return 0;
+					for(unsigned int  i=0; i<matrixPtrHolder<T>::ref.size(); ++i) matrixPtrHolder<T>::ref[i]->Add(rhs.ref[i]);
+					return this;
+				}
 				void autoLoad(TFile* f){
 						for(int j=0; j<matrixPtrHolder<T>::ncol; ++j){
 								for(int i=0; i<matrixPtrHolder<T>::nrow; i++){
@@ -65,9 +80,55 @@ class matrixTObjPtr : public matrixPtrHolder<T>{
 								}
 						}
 				};
+                matrixTObjPtr<T>* load_m2TObj(const char * name, int n, int m, TFile* file){
+                         auto newm2 = matrixTObjPtr<T>(name, n, m);
+                         newm2->autoLoad(file);
+                         return newm2;
+                }
 				//				 void write(){ for(auto & it:ref) it->Write();}
 
 				std::string name;
+				bool doFree = 0;
 };
+
+template<typename T> 
+class multi_canvas : public TCanvas{
+		public: multi_canvas(matrixTObjPtr<T> & p): TCanvas(TString(p.name+"_canvas"), TString(p.name), int(p.ncol*350), int(p.nrow*325))
+				{
+						nrow= p.nrow;
+						ncol= p.ncol;
+						m2ptr = &p;
+						Divide(ncol, nrow);
+				}
+				multi_canvas(TString name, TString title, int mrow, int mcol): TCanvas(name, title, mcol*325, mrow*325)
+		{
+				nrow= mrow;
+				ncol= mcol;
+				Divide(ncol, nrow);
+		}
+				int flatten(int n, int m){
+						if(n > nrow -1 || m > ncol -1 ) {
+								std::cout<<" ==== ERROR: index ("<<n<<", "<<m<<") exceeds the range!!! current shape ["<<nrow<<", "<<ncol<<"] ===="<<std::endl;
+								return 0;
+						}
+						//slightly different from the matrixPtrHolder, the row and column in canvas start from 1 and up, 0 stands for the whole pad.
+						return n*ncol+m+1;}
+				void CD(int n, int m){ this->cd(flatten(n,m));}
+				void draw(){
+						this->SetMargin(0.5, 0.5, 0.4, 0.40);
+						//gStyle->SetOptStat(0);
+						for(int i=0; i< nrow; ++i){
+								for(int j=0; j< ncol; ++j){
+										cd(i,j);
+										m2ptr(i,j)->Draw();
+								}
+						}
+				}
+
+		public:
+				int nrow, ncol;
+				matrixTObjPtr<T> *m2ptr;
+};
+
 
 #endif

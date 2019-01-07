@@ -1,14 +1,42 @@
 
+#ifndef jtc_utility
+#define jtc_utility
 #include "TH2.h"
 #include "TH2D.h"
 #include "TH1D.h"
 #include "TString.h"
 #include "TString.h"
 
+
 namespace jtc_utility {
 
-		void invariant_TH2(TH2* h){
-				h->Scale(1.0/h->GetXaxis()->GetBinWidth(1)/h->GetYaxis()->GetBinWidth(1));
+		struct index2d{
+				int i1;
+				int i2;
+		};
+
+		Double_t etabin[24] ={-3.5, -3, -2.5,-2.,-1.5, -1., -0.8, -0.6, -0.4, -0.3, -0.2, -0.1, 0.1, 0.2, 0.3, 0.4, 0.6, 0.8, 1., 1.5,2.,2.5, 3, 3.5};
+
+		Double_t phibin[18] ={-1.50796, -1.00531,-0.879646, -.75398, -0.628319,-0.502655, -0.376991, -0.251327, -0.125664, 0.125664, 0.251327, 0.376991, 0.502655, 0.628319,.75398, 0.879646, 1.00531,1.50796};
+
+		void invariant_TH2(TH2* h){ h->Scale(1.0/h->GetXaxis()->GetBinWidth(1)/h->GetYaxis()->GetBinWidth(1));
+		}
+
+		TString histNameScheme(const char * caption, bool isGenJet, bool isGenTrack, bool isPTweighted = 0, bool isMix = 0){
+				TString histType = caption;
+				if(isGenJet){
+						histType = histType+"GenJet_";
+				} else {
+						histType = histType+"RecoJet_";
+				}
+				if(isGenTrack){
+						histType = histType+"GenTrack";
+				}else {
+						histType = histType+"RecoTrack";
+				}
+				if( isPTweighted) histType = histType + "_pTweighted";
+				if( isMix) histType = histType + "_mixing";
+				return histType;
 		}
 
 		TH2D* sideBandMixingTableMaker(TH2D* h2, float sidemin, float sidemax){
@@ -190,5 +218,81 @@ namespace jtc_utility {
 				else if( x[0]<-x0 ) return -par[1]*(x[0]+x0)+par[0]+par[2]*pow(x[0]+x0, 2);
 				else return par[1]*(x[0]-x0)+par[0]+par[2]*pow(x[0]-x0, 2);
 		}
+
+		TH1* invariantRebin(TH1* h1, TString name , int n, Double_t * bins){
+				// rebin the histogram based on the bins given in the parameter
+				if(n == h1->GetNbinsX() ) return h1;
+				TH1* h=(TH1*) h1->Clone("tmp");
+				//input h needs to be invariant
+				for(int i=1; i<h->GetNbinsX()+1; ++i){
+						Double_t wd = h->GetBinWidth(i);
+						h->SetBinContent(i, h->GetBinContent(i)*wd);
+						h->SetBinError  (i, h->GetBinError(i)*wd);
+				}
+				TH1* hh = h->Rebin(n, name, bins);
+				for(int i=1; i<hh->GetNbinsX()+1; ++i){
+						Double_t wd = hh->GetBinWidth(i);
+						if(!hh->GetBinContent(i)) continue; //skip empty bin
+						hh->SetBinContent(i, hh->GetBinContent(i)/wd);
+						hh->SetBinError  (i, hh->GetBinError(i)/wd);
+				}
+				delete h;
+				return hh;
+		}
+
+		float range_based_on_error(TH1 &h, float x1, float x2){
+				int n1 = h.GetXaxis()->FindBin(x1);
+				int n2 = h.GetXaxis()->FindBin(x2);
+				int nsum = fabs(n2-n1)+1;
+				float err =0;
+				for(int i=n1; i< n2+1; i++){
+						err += h.GetBinError(i);
+				}
+				return err/nsum;
+		}
+		TH1* projectionX(TH2D* h, float x, float y, TString opt){
+				int xbin = h->GetYaxis()->FindBin(x);
+				int ybin = h->GetYaxis()->FindBin(y);
+				ybin = h->GetYaxis()->FindBin(y-h->GetYaxis()->GetBinWidth(ybin));
+				TString name = h->GetName(); name = "projX_"+name;
+				return h->ProjectionX(name, xbin, ybin , opt);
+		}
+
+		TH1* projectionY(TH2D* h, float x, float y, TString opt){
+				int xbin = h->GetXaxis()->FindBin(x);
+				int ybin = h->GetXaxis()->FindBin(y)-1;
+				ybin = h->GetXaxis()->FindBin(y-h->GetXaxis()->GetBinWidth(ybin));
+				TString name = h->GetName(); name = "projY_"+name;
+				return h->ProjectionY(name, xbin, ybin ,opt);
+		}
+
+		TH1* projX(bool doRebin, TH2D*h2, float x, float y, TString opt){
+				// here h2 needs to be invariant
+				TH1* h=jtc_utility::projectionX(h2, x, y, opt);
+				h->Scale(h2->GetYaxis()->GetBinWidth(1));
+				if(doRebin){
+						TString name = h->GetName();
+						name = "rebined_"+name;
+						TH1* hh=h;
+						h=jtc_utility::invariantRebin(h,name, 23, etabin);
+						delete hh;
+				}
+				return h;
+		}
+
+		TH1* projY(bool doRebin, TH2D*h2, float x, float y, TString opt){
+				// here h2 needs to be invariant
+				TH1* h=projectionY(h2, x, y, opt);
+				h->Scale(h2->GetXaxis()->GetBinWidth(1));
+				if(doRebin){
+						TString name = h->GetName();
+						name = "rebined_"+name;
+						TH1* hh=h;
+						h=invariantRebin(h,name, 17, phibin);
+						delete hh;
+				}
+				return h;
+		}
 }
 
+#endif

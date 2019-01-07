@@ -1,8 +1,10 @@
 
-#include "rootEDM.h"
+#ifndef EDMJTCSIGNALPRODUCER_H
+#define EDMJTCSIGNALPRODUCER_H
 #include "edmJtcUtility.h"
 #include "TF1.h"
 #include "TLine.h"
+#include "TROOT.h"
 
 class edmJtcSignalProducer {
 		public : edmJtcSignalProducer(){};
@@ -26,6 +28,7 @@ class edmJtcSignalProducer {
 						 if( func_seagull !=0 ) func_seagull->Delete();
 						 func_seagull = new TF1("func_"+name, fcn, -3., 3., npar);
 				 }
+				 void check_seagull();
 
 				 TString name;
 				 void write();
@@ -37,6 +40,8 @@ class edmJtcSignalProducer {
 				 TH2D* mix = 0;	 
 				 TH2D* mix_norm = 0;	 
 				 TH1D* dr_shape = 0;
+				 TH1D* dr_shape_step2 = 0; // dr integral over sig_step2
+				 TH1D* dr0 = 0; // dr integral over raw_sig
 				 TF1 * func_seagull = 0;
 //				 Double_t  (*func) (Double_t *, Double_t *) = jtc_utility::seagull_pol2_par3;
 				 float sideMin = 1.5, sideMax = 2.5;
@@ -85,14 +90,18 @@ void edmJtcSignalProducer::produce(){
 		else info2 = " with mix: '"+TString(mix->GetName())+"'";
 		std::cout<<info1+info2<<std::endl;
 		getSignal(name);	
-		dr_shape = jtc_utility::doDrIntegral(name, sig, ndrbin, drbins);
+		dr0 = jtc_utility::doDrIntegral("raw_"+name, raw_sig, ndrbin, drbins);
+		dr_shape_step2 = jtc_utility::doDrIntegral("mix_correctd_"+name, sig_step2, ndrbin, drbins);
+		dr_shape = jtc_utility::doDrIntegral("signal_"+name, sig, ndrbin, drbins);
 }
 
 void edmJtcSignalProducer::write(){
 		if(sig!=0) sig->Write();
 		if(sig_step2 != 0) sig_step2->Write();
-		if(mix!=0) mix_norm->Write();
+		if(mix_norm!=0) mix_norm->Write();
+		if(dr0 !=0) dr0->Write();
 		if(dr_shape !=0) dr_shape->Write();
+		if(dr_shape_step2 !=0) dr_shape_step2->Write();
 }
 
 void edmJtcSignalProducer::fixSeagull(TH2D* hsig){
@@ -118,3 +127,28 @@ void edmJtcSignalProducer::fixSeagull(TH2D* hsig){
 		}
 		return;
 }
+
+void edmJtcSignalProducer::check_seagull(){
+		float sidebandmin = 1.4, sidebandmax = 1.8;
+        TH1 *h1, *h2;
+        h1 = (TH1D*) jtc_utility::projX(1, sig, -1, 1, "e"); 
+        h2 = jtc_utility::projX(1, sig, sidebandmin, sidebandmax, "e"); 
+        std::cout<<h2->GetName()<<std::endl;
+        //histStyle(h2);
+        float mean = h2->GetBinContent(h1->FindBin(0));
+        float dvt = jtc_utility::range_based_on_error(*h2, -2.5, -2);
+        h2->SetAxisRange(mean-6*dvt, mean+10*dvt, "Y");
+        h1->SetLineWidth(1);
+        h2->SetLineWidth(1);
+        h1->SetLineColor(kBlack);
+        h2->SetLineColor(kOrange+7);
+        h2->SetAxisRange(-2.5, 2.49, "X");
+//        h2->Draw();
+        h1->Draw("same");
+        TLine* l = new TLine(); l->SetLineStyle(2);
+        l->DrawLine(-2.5, 0, 2.5, 0);
+		delete h1; 
+		delete h2;
+}
+
+#endif
