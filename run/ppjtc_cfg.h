@@ -33,7 +33,7 @@ ParaSet makePSet_bjtc_pp_step23(){
 
 
 
-namespace convention{
+namespace bjtc_pp_config{
 		TString ptString[] = {"1 < p_{T} < 2 GeV", "2 < p_{T} < 3 GeV", "3 < p_{T} < 4 GeV", "4 < p_{T} < 8 GeV", "8 < p_{T} < 12 GeV", "p_{T} > 12 GeV"};
 		jtc_utility::index2d arrange_pp_bjtc(int i, int j){
 				jtc_utility::index2d x;

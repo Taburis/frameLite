@@ -106,10 +106,12 @@ void bjtcAnalyzer_Step2::wf101(){
 		output_folder = ps->getPara<TString>("bjetMC_step2output_folder");
 		TString output_name = ps->getPara<TString>("bjetMC_step2output_name");
 		TString input_file;
-//		input_file = ps->getPara<TString>("bjetMC_step2input_rg_file");
-//		wf001(input_file, output_name, 0, 1);
+		input_file = ps->getPara<TString>("bjetMC_step2input_rg_file");
+		wf001(input_file, output_name, 0, 1);
 		input_file = ps->getPara<TString>("bjetMC_step2input_gg_file");
 		wf001(input_file, output_name, 1, 1);
+		input_file = ps->getPara<TString>("bjetMC_step2input_rr_file");
+		wf001(input_file, output_name, 0, 0);
 }
 
 int bjtcAnalyzer_Step2::analyze(){
