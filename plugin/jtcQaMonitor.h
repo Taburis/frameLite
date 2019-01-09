@@ -18,16 +18,19 @@ class jtcQaMonitor{
 				 void addm2TH1(matrixTObjPtr<TH1>* m2){
 						 vm2th1.push_back(m2);
 				 }
+				 void setTitlePosition(float a, float b){xtitle = a; ytitle = b;}
 
 		public :// ParaSet * ps;
 				 jtc_utility::index2d (*pad_map) (int, int);
+				 TString (*pad_title) (int, int) = 0;
 
 				 // config to plot
 				 float x1, x2;
 				 float y1, y2;
+				 float xtitle = 0.5, ytitle =0.85;
 				 bool fixYrange = 0;
 				 //pad config
-				 bool doSave = 0;
+				 bool doSave = 0, makeTitle = 0;
 				 int ncol = 3, nrow =2;
 				 int npt, ncent;
 				 vector<matrixTObjPtr<TH1>*> vm2th1; 
@@ -67,6 +70,9 @@ multi_canvas<TH1>* jtcQaMonitor::overlay(TString savename){
                         }
                 }
         }
+		if(makeTitle && pad_title != 0){
+				std::cout<<"ERROR: please specify the pad_title function first!"<<std::endl;
+		}
 		for(int k=0; k<vm2th1.size(); ++k){
 				m2th = vm2th1[k];
                 for(int i=0; i<npt ; ++i){
@@ -85,6 +91,8 @@ multi_canvas<TH1>* jtcQaMonitor::overlay(TString savename){
 								cout<<index.i1<<", "<<index.i2<<endl;
 								cm->CD(index.i1, index.i2);
                                 m2th->at(i,j)->Draw("same");
+								if(makeTitle)  tx->DrawLatexNDC(xtitle, ytitle, pad_title(i,j));
+                                //m2th->at(i,j)->DrawNormalized("same");
 						}
 				}
 		}
