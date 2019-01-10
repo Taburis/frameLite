@@ -62,12 +62,6 @@ class matrixTObjPtr : public matrixPtrHolder<T>{
 						return m2;
 				}
 				void setup(const char* _name, int n, int m){name = _name, matrixPtrHolder<T>::setup(n,m);};
-				matrixTObjPtr * operator+( matrixTObjPtr & rhs){
-					//check if the matrix shapes are the same
-					if( matrixPtrHolder<T>::ncol != rhs.ncol || matrixPtrHolder<T>::nrow != rhs.nrow) return 0;
-					for(unsigned int  i=0; i<matrixPtrHolder<T>::ref.size(); ++i) matrixPtrHolder<T>::ref[i]->Add(rhs.ref[i]);
-					return this;
-				}
 				void autoLoad(TFile* f){
 						for(int j=0; j<matrixPtrHolder<T>::ncol; ++j){
 								for(int i=0; i<matrixPtrHolder<T>::nrow; i++){
@@ -89,6 +83,27 @@ class matrixTObjPtr : public matrixPtrHolder<T>{
 
 				std::string name;
 				bool doFree = 0;
+};
+
+class matrixTH1Ptr : public matrixTObjPtr<TH1>{
+		public : matrixTH1Ptr(): matrixTObjPtr<TH1>(){};
+				 matrixTH1Ptr(const char * _name, int n, int m): matrixTObjPtr<TH1>(_name, n,m) {}
+				 void setName(const char* _name) {
+						 name = _name;
+						 for(int j=0; j<matrixTObjPtr<TH1>::ncol; ++j){
+								for(int i=0; i<matrixTObjPtr<TH1>::nrow; i++){
+										auto hn = name+"_"+i+"_"+j;
+										at(i,j)->SetName(hn);
+								}
+						 }
+				 }
+				matrixTH1Ptr * operator+( matrixTH1Ptr & rhs){
+					//check if the matrix shapes are the same
+					if( matrixTObjPtr<TH1>::ncol != rhs.ncol || matrixTObjPtr<TH1>::nrow != rhs.nrow) return 0;
+					for(unsigned int  i=0; i<matrixTObjPtr<TH1>::ref.size(); ++i) matrixTObjPtr<TH1>::ref[i]->Add(rhs.ref[i]);
+					setName(("sum_"+name).c_str());
+					return this;
+				}
 };
 
 template<typename T> 

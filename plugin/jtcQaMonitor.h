@@ -15,7 +15,7 @@ class jtcQaMonitor{
 				 void flash(){
 						 vm2th1.clear();
 				 }
-				 void addm2TH1(matrixTObjPtr<TH1>* m2){
+				 void addm2TH1(matrixTH1Ptr* m2){
 						 vm2th1.push_back(m2);
 				 }
 				 void setTitlePosition(float a, float b){xtitle = a; ytitle = b;}
@@ -33,7 +33,7 @@ class jtcQaMonitor{
 				 bool doSave = 0, makeTitle = 0;
 				 int ncol = 3, nrow =2;
 				 int npt, ncent;
-				 vector<matrixTObjPtr<TH1>*> vm2th1; 
+				 vector<matrixTH1Ptr*> vm2th1; 
 };
 
 multi_canvas<TH1>* jtcQaMonitor::overlay(TString savename){
