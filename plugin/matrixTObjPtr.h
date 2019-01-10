@@ -74,11 +74,11 @@ class matrixTObjPtr : public matrixPtrHolder<T>{
 								}
 						}
 				};
-                matrixTObjPtr<T>* load_m2TObj(const char * name, int n, int m, TFile* file){
-                         auto newm2 = matrixTObjPtr<T>(name, n, m);
-                         newm2->autoLoad(file);
-                         return newm2;
-                }
+				matrixTObjPtr<T>* load_m2TObj(const char * name, int n, int m, TFile* file){
+						auto newm2 = matrixTObjPtr<T>(name, n, m);
+						newm2->autoLoad(file);
+						return newm2;
+				}
 				//				 void write(){ for(auto & it:ref) it->Write();}
 
 				std::string name;
@@ -91,19 +91,55 @@ class matrixTH1Ptr : public matrixTObjPtr<TH1>{
 				 void setName(const char* _name) {
 						 name = _name;
 						 for(int j=0; j<matrixTObjPtr<TH1>::ncol; ++j){
-								for(int i=0; i<matrixTObjPtr<TH1>::nrow; i++){
-										auto hn = name+"_"+i+"_"+j;
-										at(i,j)->SetName(hn);
-								}
+								 for(int i=0; i<matrixTObjPtr<TH1>::nrow; i++){
+										 auto hn = name+"_"+i+"_"+j;
+										 at(i,j)->SetName(hn);
+								 }
 						 }
 				 }
-				matrixTH1Ptr * operator+( matrixTH1Ptr & rhs){
-					//check if the matrix shapes are the same
-					if( matrixTObjPtr<TH1>::ncol != rhs.ncol || matrixTObjPtr<TH1>::nrow != rhs.nrow) return 0;
-					for(unsigned int  i=0; i<matrixTObjPtr<TH1>::ref.size(); ++i) matrixTObjPtr<TH1>::ref[i]->Add(rhs.ref[i]);
-					setName(("sum_"+name).c_str());
-					return this;
-				}
+				 matrixTH1Ptr * clone(const char * newname){
+						 auto m2 = new matrixTH1Ptr(newname, matrixTObjPtr<TH1>::nrow, matrixTObjPtr<TH1>::ncol);
+						 for(int j=0; j<matrixTObjPtr<TH1>::ncol; ++j){
+								 for(int i=0; i<matrixTObjPtr<TH1>::nrow; i++){
+										 auto hn = string(newname)+"_"+i+"_"+j;
+										 auto hh = (TH1*) at(i,j)->Clone(hn);
+										 m2->add(hh, i, j);
+								 }
+						 }
+						 return m2;
+				 }
+				 matrixTH1Ptr * operator+( matrixTH1Ptr & rhs){
+						 //check if the matrix shapes are the same
+						 if( matrixTObjPtr<TH1>::ncol != rhs.ncol || matrixTObjPtr<TH1>::nrow != rhs.nrow) return 0;
+						 auto m2 = clone((string("sum_")+name).c_str());
+						 for(int j=0; j<matrixTObjPtr<TH1>::ncol; ++j){
+								 for(int i=0; i<matrixTObjPtr<TH1>::nrow; i++){
+										 m2->at(i,j)->Add(rhs(i,j));
+								 }
+						 }
+						 return m2;
+				 }
+				 matrixTH1Ptr * operator/( matrixTH1Ptr & rhs){
+						 if( matrixTObjPtr<TH1>::ncol != rhs.ncol || matrixTObjPtr<TH1>::nrow != rhs.nrow) return 0;
+						 auto m2 = clone((string("division_")+name).c_str());
+						 for(int j=0; j<matrixTObjPtr<TH1>::ncol; ++j){
+								 for(int i=0; i<matrixTObjPtr<TH1>::nrow; i++){
+										 m2->at(i,j)->Divide(rhs(i,j));
+								 }
+						 }
+						 return m2;
+				 }
+				 matrixTH1Ptr * operator%( matrixTH1Ptr & rhs){
+						 if( matrixTObjPtr<TH1>::ncol != rhs.ncol || matrixTObjPtr<TH1>::nrow != rhs.nrow) return 0;
+						 auto m2 = clone((string("bdivided_")+name).c_str());
+						 for(int j=0; j<matrixTObjPtr<TH1>::ncol; ++j){
+								 for(int i=0; i<matrixTObjPtr<TH1>::nrow; i++){
+										 m2->at(i,j)->Divide(m2->at(i,j), rhs(i,j), 1, 1, "B");
+								 }
+						 }
+						 return m2;
+				 }
+
 };
 
 template<typename T> 

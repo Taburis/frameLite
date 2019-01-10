@@ -11,7 +11,7 @@ Color_t color_vec[6]={kBlue+1, kRed+1, kGreen+2, kAzure+7, kMagenta+2, kBlack};
 class jtcQaMonitor{
 		public : jtcQaMonitor(){
 				 };
-				 multi_canvas<TH1>* overlay(TString savename);
+				 multi_canvas<TH1>* overlay(TString savename = "");
 				 void flash(){
 						 vm2th1.clear();
 				 }
@@ -19,6 +19,8 @@ class jtcQaMonitor{
 						 vm2th1.push_back(m2);
 				 }
 				 void setTitlePosition(float a, float b){xtitle = a; ytitle = b;}
+				 void setYrange(float a, float b){y1 = a; y2 = b; fixYrange = 1;}
+				 void addhLine(float a){yline = a; drawLine = 1;}
 
 		public :// ParaSet * ps;
 				 jtc_utility::index2d (*pad_map) (int, int);
@@ -33,14 +35,16 @@ class jtcQaMonitor{
 				 bool doSave = 0, makeTitle = 0;
 				 int ncol = 3, nrow =2;
 				 int npt, ncent;
+				 float xline , yline;
+				 bool drawLine = 0;
 				 vector<matrixTH1Ptr*> vm2th1; 
 };
 
 multi_canvas<TH1>* jtcQaMonitor::overlay(TString savename){
 		va_list ap;
 		auto cm = new multi_canvas<TH1>("c_"+savename, "", nrow, ncol);
-        auto tx = new TLatex();  tx->SetTextSize(.06);
-        auto tl = new TLine(); tl->SetLineStyle(2);
+        TLatex tx;  tx.SetTextSize(.06);
+        TLine tl; tl.SetLineStyle(2);
         TString tmp;
 		int npt   = vm2th1[0]->nrow;
 		int ncent = vm2th1[0]->ncol;
@@ -70,8 +74,9 @@ multi_canvas<TH1>* jtcQaMonitor::overlay(TString savename){
                         }
                 }
         }
-		if(makeTitle && pad_title != 0){
+		if(makeTitle && pad_title == 0){
 				std::cout<<"ERROR: please specify the pad_title function first!"<<std::endl;
+				return nullptr;
 		}
 		for(int k=0; k<vm2th1.size(); ++k){
 				m2th = vm2th1[k];
@@ -91,7 +96,8 @@ multi_canvas<TH1>* jtcQaMonitor::overlay(TString savename){
 								cout<<index.i1<<", "<<index.i2<<endl;
 								cm->CD(index.i1, index.i2);
                                 m2th->at(i,j)->Draw("same");
-								if(makeTitle)  tx->DrawLatexNDC(xtitle, ytitle, pad_title(i,j));
+								if(drawLine) tl.DrawLine(x1, yline, x2, yline);
+								if(makeTitle)  tx.DrawLatexNDC(xtitle, ytitle, pad_title(i,j));
                                 //m2th->at(i,j)->DrawNormalized("same");
 						}
 				}
