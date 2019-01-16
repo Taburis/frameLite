@@ -6,6 +6,7 @@
 #include "edmJtcUtility.h"
 #include "ParaSet.h"
 #include "TLatex.h"
+#include "TLine.h"
 
 Color_t color_vec[6]={kBlue+1, kRed+1, kGreen+2, kAzure+7, kMagenta+2, kBlack};
 
@@ -75,7 +76,7 @@ multi_canvas<TH1>* jtcQaMonitor::overlay(TString savename){
 				}
 		}
 		auto m2th = vm2th1[0];
-		if(fixYrange){
+		if(autoYrange){
 				for(int i =0; i<npt ; ++i){
 						for(int j=0; j<ncent; ++j){
 								max[i+j*npt] = m2th->at(i,j)->GetMaximum();
@@ -118,8 +119,11 @@ multi_canvas<TH1>* jtcQaMonitor::overlay(TString savename){
 								cm->CD(index.i1, index.i2);
 								m2th->at(i,j)->GetXaxis()->CenterTitle();
 								m2th->at(i,j)->Draw("same");
-								if(drawLine) tl.DrawLine(x1, yline, x2, yline);
 								if(makeTitle)  tx.DrawLatexNDC(xtitle, ytitle, pad_title(i,j));
+								if(drawLine ){
+										if(autoYrange && min[i+j*npt]-1.5*grid < yline && max[i+j*npt]+1.5*grid > yline) tl.DrawLine(x1, yline, x2, yline);
+										else tl.DrawLine(x1, yline, x2, yline);
+								}
 								//m2th->at(i,j)->DrawNormalized("same");
 						}
 				}

@@ -25,6 +25,17 @@ namespace jtc_utility {
 		void invariant_TH2(TH2* h){ h->Scale(1.0/h->GetXaxis()->GetBinWidth(1)/h->GetYaxis()->GetBinWidth(1));
 		}
 
+		Double_t seagull_pol2_par3(Double_t *x, Double_t *par){
+				//fitting function is: a0+a1*|x-x0|+a2*x+a3*x^2;
+				// total 4 parameters: npar = 4 
+				float x0 = 0.5;
+				if(x[0] < x0 && x[0] > -x0) return par[0];
+				else if( x[0]<-x0 ) return -par[1]*(x[0]+x0)+par[0]+par[2]*x[0]+par[3]*pow(x[0]-x0, 2);
+				else return par[1]*(x[0]-x0)+par[0]+par[2]*x[0]+par[3]*pow(x[0]-x0, 2);
+				//else if( x[0]<-x0 ) return -par[1]*(x[0]+x0)+par[0]+par[2]*pow(x[0], 2);
+				//else return par[1]*(x[0]-x0)+par[0]+par[2]*pow(x[0], 2);
+		}
+
 		TString histNameScheme(const char * caption, bool isGenJet, bool isGenTrack, bool isPTweighted = 0, bool isMix = 0){
 				TString histType = caption;
 				if(isGenJet){
@@ -58,7 +69,7 @@ namespace jtc_utility {
 				for(int i=binLeft;i<binRight; i++){
 						mean += temp->GetBinContent(i);
 				}
-				mean = mean /(temp->FindBin(midRight)-temp->FindBin(midLeft)+1)/h2->GetNbinsY();
+				mean = mean/(temp->FindBin(midRight)-temp->FindBin(midLeft)+1)/h2->GetNbinsY();
 				temp->Scale(1.0/mean);
 				for(int ix=1; ix<h2->GetNbinsX()+1; ix++){
 						for(int iy=1; iy<h2->GetNbinsY()+1; iy++){
@@ -213,14 +224,6 @@ namespace jtc_utility {
 				return dr_integral;
 		}
 
-		Double_t seagull_pol2_par3(Double_t *x, Double_t *par){
-				//fitting function is: a0+a1*|x-x0|+a2*x+a3*x^2;
-				// total 3 parameters: npar = 3 
-				float x0 = 0.5;
-				if(x[0] < x0 && x[0] > -x0) return par[0];
-				else if( x[0]<-x0 ) return -par[1]*(x[0]+x0)+par[0]+par[2]*pow(x[0]+x0, 2);
-				else return par[1]*(x[0]-x0)+par[0]+par[2]*pow(x[0]-x0, 2);
-		}
 
 		TH1* invariantRebin(TH1* h1, TString name , int n, Double_t * bins){
 				// rebin the histogram based on the bins given in the parameter

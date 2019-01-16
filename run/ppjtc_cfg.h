@@ -19,9 +19,11 @@ ParaSet makePSet_edmJtcDefault(){
 		// config for step2 and step3
 		ParaSet st("edmJtcAnalzyer_pset");
 		double jetptbin[] = {110, 120, 136, 152, 168, 184, 200, 216, 232, 248, 264, 280, 296, 312, 328, 344, 360, 380, 400, 432, 500};
-		float drbin[] = {0.,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.6,0.7,0.8,1.};
 		//		cout<<"size is "<<sizeof(jetptbin)/sizeof(jetptbin[0])<<endl;
-		st.setPara<int>("ndr", 14);
+		//float drbin[] = {0.,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.6,0.7,0.8,1.};
+		//st.setPara<int>("ndr", 14);
+		float drbin[] = {0.,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.45,0.6,0.8,1. };
+		st.setPara<int>("ndr", 11);
 		st.setParaVector<float>("drbins", sizeof(drbin)/sizeof(drbin[0]), drbin);
 		st.setParaVector<double>("jet_pt_bin", sizeof(jetptbin)/sizeof(jetptbin[0]), jetptbin);
 		st.setPara<int>("npt", 6);

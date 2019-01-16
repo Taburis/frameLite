@@ -5,11 +5,14 @@
 #include "TF1.h"
 #include "TLine.h"
 #include "TROOT.h"
+#include "TFitResult.h"
 
 class edmJtcSignalProducer {
 		public : edmJtcSignalProducer(){};
 				 virtual ~edmJtcSignalProducer(){
 						 func_seagull->Delete();
+						 if(hsideband!=nullptr) delete hsideband;
+						 if(hsideband0!=nullptr) delete hsideband0;
 						 //if( ndrbin != 0) delete drbins;
 				 }
 				 void addSig(TH2D* h1, TH2D* h2){
@@ -23,7 +26,7 @@ class edmJtcSignalProducer {
 						 return h->Integral(n1, n2)/fabs(n2-n1+1);
 				 }
 				 void fixSeagull(TH2D* hsig);
-				 void setFitFunction(int npar = 2, Double_t (*fcn)(Double_t *, Double_t*) = 0){
+				 void setFitFunction(int npar = 3, Double_t (*fcn)(Double_t *, Double_t*) = 0){
 						 if( fcn == 0) fcn = jtc_utility::seagull_pol2_par3;
 						 if( func_seagull !=0 ) func_seagull->Delete();
 						 func_seagull = new TF1("func_"+name, fcn, -3., 3., npar);
@@ -36,6 +39,7 @@ class edmJtcSignalProducer {
 				 TH2D* raw_sig = 0;	 
 				 TH2D* sig = 0;	 
 				 TH2D* sig_step2 = 0;	 //raw signal after acceptance correction 
+				 TH2D* sig_step3 = 0;	 //sig_step2 after seagull correction 
 				 TH2D* bkg = 0;	 
 				 TH2D* mix = 0;	 
 				 TH2D* mix_norm = 0;	 
@@ -45,6 +49,7 @@ class edmJtcSignalProducer {
 				 // for seagull fitting
 				 TF1 * func_seagull = 0;
 				 TH1D* hsideband = nullptr;
+				 TH1D* hsideband0= nullptr;
 				 //				 Double_t  (*func) (Double_t *, Double_t *) = jtc_utility::seagull_pol2_par3;
 				 float sideMin = 1.5, sideMax = 2.5;
 				 bool doSmoothME = true;
@@ -71,8 +76,9 @@ TH2D* edmJtcSignalProducer::getSignal(TString name){
 		}
 		mix_norm->SetName("smoothed_mixing_"+name);
 		sig->Divide(mix_norm);
-		if(doSeagullCorr)   fixSeagull(sig);
 		sig_step2 = (TH2D*) sig->Clone("sig_mix_corrected_"+name);
+		if(doSeagullCorr)   fixSeagull(sig);
+		sig_step3 = (TH2D*) sig->Clone("sig_mix_seagull_corrected_"+name);
 		bkg = (TH2D*) jtc_utility::getV2Bkg(sig,sideMin , sideMax );
 		bkg->SetName("bkg_"+name);
 		sig->Add(sig, bkg, 1, -1);
@@ -120,16 +126,22 @@ void edmJtcSignalProducer::fixSeagull(TH2D* hsig){
 		hsideband->Draw();
 		TLine line; line.DrawLine(-3, mean, 3, mean);
 		std::cout<<"fitting function: "<<func_seagull->GetName()<<std::endl;
+		func_seagull->FixParameter(0, mean);
+		float xx0 = getMean(hsideband, 0.5, 1);
+		float xx1 = getMean(hsideband, 1, 1.5);
+		float xx2 = getMean(hsideband, 2.5, 3);
+		//func_seagull->SetParLimits(1, 0, fabs(xx1-xx0));
+		//func_seagull->SetParLimits(3, 0, xx2/2.5/2.5);
 		std::cout<<func_seagull<<std::endl;
-		auto ptr = hsideband->Fit(func_seagull, "", "", -3., 2.99);
-		auto res = ptr.Get();
-		auto err = res->Errors();
-		cout<<"ERROR: "<<err[0]<<endl;
+		auto ptr = hsideband->Fit(func_seagull, "MS", "", -3., 2.99);
+		auto code =ptr->Status();
+		//Int_t r = ptr;
+		std::cout<<code<<std::endl;
 		//mean = func_seagull->GetParameter(0);
-		//htm1->Fit(func);
+	//	if(r) return;
 		for(int i=1; i<hsig->GetNbinsX()+1; ++i){
 				float x = hsig->GetXaxis()->GetBinCenter(i);
-				//              if(fabs(x)<0.3) continue;
+				if(fabs(x)<0.3) continue;
 				float corr = mean/func_seagull->Eval(x);
 				for(int j=1; j<hsig->GetNbinsY()+1; ++j){
 						if(hsig->GetBinContent(i,j) == 0) continue;
