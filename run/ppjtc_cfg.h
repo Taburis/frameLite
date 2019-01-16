@@ -1,7 +1,19 @@
 
-#include "ParaSet.h"
 #include "edmJtcUtility.h"
+#include "ParaSet.h"
 #include "TString.h"
+namespace bjtc_pp_config{
+		TString ptString[] = {"1 < p_{T} < 2 GeV", "2 < p_{T} < 3 GeV", "3 < p_{T} < 4 GeV", "4 < p_{T} < 8 GeV", "8 < p_{T} < 12 GeV", "p_{T} > 12 GeV"};
+		jtc_utility::index2d arrange_pp_bjtc(int i, int j){
+				jtc_utility::index2d x;
+				x.i1 = i/3;
+				x.i2 = i%3;
+				return x;
+		}
+		TString pTtitle(int i, int j){
+				return ptString[i];
+		}
+}
 
 ParaSet makePSet_edmJtcDefault(){
 		// config for step2 and step3
@@ -22,26 +34,30 @@ ParaSet makePSet_bjtc_pp_step23(){
 		TString fbjetMC_rg = "bJTC_PYTHIA6_RecGen_5TeV_bjetMC_wtaAxis_7Jan19.root";
 		TString fbjetMC_gg = "bJTC_PYTHIA6_GenGen_5TeV_bjetMC_wtaAxis_7Jan19.root";
 		TString fbjetMC_rr = "bJTC_PYTHIA6_RecRec_5TeV_bjetMC_wtaAxis_7Jan19.root";
+		TString fdijetMC_rg = "bJTC_PYTHIA6_RecGen_5TeV_dijetMC_wtaAxis_11Jan19.root";
+		TString fdijetMC_gg = "bJTC_PYTHIA6_GenGen_5TeV_dijetMC_wtaAxis_11Jan19.root";
+		TString fdijetMC_rr = "bJTC_PYTHIA6_RecRec_5TeV_dijetMC_wtaAxis_11Jan19.root";
+		TString fdata = "bJTC_pp_data_5TeV_wtaAxis_7Jan19.root";
 		ParaSet st("bjtc_pp_allstep_pset");
-		st.setPara<TString>("bjetMC_step2output_folder", "/Users/tabris/frameLite/run/");
+		st.setPara<TString>("step2output_folder", "/Users/tabris/frameLite/output/step2/");
 		st.setPara<TString>("bjetMC_step2output_name", "Signal_PYTHIA6_bjetSample_allJets");
 		st.setPara<TString>("bjetMC_step2input_rg_file", inputfolder+fbjetMC_rg);
 		st.setPara<TString>("bjetMC_step2input_gg_file", inputfolder+fbjetMC_gg);
 		st.setPara<TString>("bjetMC_step2input_rr_file", inputfolder+fbjetMC_rr);
+		st.setPara<TString>("dijetMC_step2input_rg_file", inputfolder+fdijetMC_rg);
+		st.setPara<TString>("dijetMC_step2input_gg_file", inputfolder+fdijetMC_gg);
+		st.setPara<TString>("dijetMC_step2input_rr_file", inputfolder+fdijetMC_rr);
+		st.setPara<TString>("pp5TeVData_step2input_file", inputfolder+fdata);
+		st.setPara<TString>("dijetMC_step2output_name", "Signal_PYTHIA6_dijetSample_allJets");
+		st.setPara<TString>("pp5TeVData_step2output_name", "Signal_pp5TeVData_allJets");
+		st.setPara<bool>("doQA", 1);
+
+		st.setPara<mapper_func>("pad_map", bjtc_pp_config::arrange_pp_bjtc);
+		st.setPara<TString (*)(int, int)>("pad_title", bjtc_pp_config::pTtitle);
+		st.setPara<int>("pad_nrow", 2);
+		st.setPara<int>("pad_ncol", 3);
 		return st;
 }
 
 
 
-namespace bjtc_pp_config{
-		TString ptString[] = {"1 < p_{T} < 2 GeV", "2 < p_{T} < 3 GeV", "3 < p_{T} < 4 GeV", "4 < p_{T} < 8 GeV", "8 < p_{T} < 12 GeV", "p_{T} > 12 GeV"};
-		jtc_utility::index2d arrange_pp_bjtc(int i, int j){
-				jtc_utility::index2d x;
-				x.i1 = i/3;
-				x.i2 = i%3;
-				return x;
-		}
-		TString pTtitle(int i, int j){
-				return ptString[i];
-		}
-}

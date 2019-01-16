@@ -36,7 +36,7 @@ class ParaSetBase{
 						T getPara(const char* pname){
 								if(!exists(pname)) {
 										std::cout<<"parameter '"<<pname<<"' haven't been  defined in the ParaSet:"<<set_name<<std::endl;
-										return 1;
+										return T(0);
 								}
 								return any_cast<T>(table[pname]);
 						}

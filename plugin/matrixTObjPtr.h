@@ -41,6 +41,8 @@ class matrixPtrHolder{
 						 nrow = ncol;
 						 ncol = trans;
 				 }
+				 int Ncol(){ return ncol; }
+				 int Nrow(){ return nrow; }
 		public :
 				 std::vector<T*> ref;
 				 int nrow, ncol;
@@ -101,7 +103,7 @@ class matrixTH1Ptr : public matrixTObjPtr<TH1>{
 						 auto m2 = new matrixTH1Ptr(newname, matrixTObjPtr<TH1>::nrow, matrixTObjPtr<TH1>::ncol);
 						 for(int j=0; j<matrixTObjPtr<TH1>::ncol; ++j){
 								 for(int i=0; i<matrixTObjPtr<TH1>::nrow; i++){
-										 auto hn = string(newname)+"_"+i+"_"+j;
+										 auto hn = std::string(newname)+"_"+i+"_"+j;
 										 auto hh = (TH1*) at(i,j)->Clone(hn);
 										 m2->add(hh, i, j);
 								 }
@@ -111,7 +113,7 @@ class matrixTH1Ptr : public matrixTObjPtr<TH1>{
 				 matrixTH1Ptr * operator+( matrixTH1Ptr & rhs){
 						 //check if the matrix shapes are the same
 						 if( matrixTObjPtr<TH1>::ncol != rhs.ncol || matrixTObjPtr<TH1>::nrow != rhs.nrow) return 0;
-						 auto m2 = clone((string("sum_")+name).c_str());
+						 auto m2 = clone((std::string("sum_")+name).c_str());
 						 for(int j=0; j<matrixTObjPtr<TH1>::ncol; ++j){
 								 for(int i=0; i<matrixTObjPtr<TH1>::nrow; i++){
 										 m2->at(i,j)->Add(rhs(i,j));
@@ -121,7 +123,7 @@ class matrixTH1Ptr : public matrixTObjPtr<TH1>{
 				 }
 				 matrixTH1Ptr * operator/( matrixTH1Ptr & rhs){
 						 if( matrixTObjPtr<TH1>::ncol != rhs.ncol || matrixTObjPtr<TH1>::nrow != rhs.nrow) return 0;
-						 auto m2 = clone((string("division_")+name).c_str());
+						 auto m2 = clone((std::string("division_")+name).c_str());
 						 for(int j=0; j<matrixTObjPtr<TH1>::ncol; ++j){
 								 for(int i=0; i<matrixTObjPtr<TH1>::nrow; i++){
 										 m2->at(i,j)->Divide(rhs(i,j));
@@ -129,9 +131,10 @@ class matrixTH1Ptr : public matrixTObjPtr<TH1>{
 						 }
 						 return m2;
 				 }
+
 				 matrixTH1Ptr * operator%( matrixTH1Ptr & rhs){
 						 if( matrixTObjPtr<TH1>::ncol != rhs.ncol || matrixTObjPtr<TH1>::nrow != rhs.nrow) return 0;
-						 auto m2 = clone((string("bdivided_")+name).c_str());
+						 auto m2 = clone((std::string("bdivided_")+name).c_str());
 						 for(int j=0; j<matrixTObjPtr<TH1>::ncol; ++j){
 								 for(int i=0; i<matrixTObjPtr<TH1>::nrow; i++){
 										 m2->at(i,j)->Divide(m2->at(i,j), rhs(i,j), 1, 1, "B");
