@@ -53,6 +53,7 @@ ParaSet makePSet_bjtc_pp_step23(){
 		st.setPara<TString>("dijetMC_step2output_name", "Signal_PYTHIA6_dijetSample_allJets");
 		st.setPara<TString>("pp5TeVData_step2output_name", "Signal_pp5TeVData_allJets");
 		st.setPara<bool>("doQA", 1);
+		st.setPara<bool>("doSeagullCorr", 1);
 
 		st.setPara<mapper_func>("pad_map", bjtc_pp_config::arrange_pp_bjtc);
 		st.setPara<TString (*)(int, int)>("pad_title", bjtc_pp_config::pTtitle);

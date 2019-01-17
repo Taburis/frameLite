@@ -28,12 +28,16 @@ class bjtcAnalyzer_Step2 : public rootEDMAnalyzer {
 				 TString sig_name, mix_name, norm_name, outputname,output_folder, openOpt, infile;
 				 bool doSave = 1;
 				 bool doQA = 1;
+				 bool doSeagullCorr = 0;
 };
 
 bjtcAnalyzer_Step2::bjtcAnalyzer_Step2(ParaSet &ps_): rootEDMAnalyzer(){
 		ps = &ps_;
 		_nodeClassName_ = "bjtcAnalyzer_Step2";
 		doQA = ps_.getPara<bool>("doQA");
+		output_folder = ps->getPara<TString>("step2output_folder");
+		gAnaIO.output_plot_path =output_folder; 
+		doSeagullCorr = ps_.getPara<bool>("doSeagullCorr");
 }
 
 
@@ -47,6 +51,7 @@ edmJtcAnalyzer * bjtcAnalyzer_Step2::initAnalyzer(){
 		an->mix_name = mix_name+"_noCorr";
 		an->norm_name = norm_name;
 		an->outputOpt = openOpt;
+		an->doSeagullCorr = doSeagullCorr;
 		analyzers.push_back(an);
 		return an;	
 }
@@ -130,7 +135,6 @@ void bjtcAnalyzer_Step2::testWf001(){
 }
 
 void bjtcAnalyzer_Step2::Datawf101(){
-		output_folder = ps->getPara<TString>("step2output_folder");
 		auto input_file = ps->getPara<TString>("pp5TeVData_step2input_file");
 		auto output_name = ps->getPara<TString>("pp5TeVData_step2output_name");
 		datawf001(input_file, output_name);
@@ -138,7 +142,6 @@ void bjtcAnalyzer_Step2::Datawf101(){
 
 void bjtcAnalyzer_Step2::bjetMCwf101(){
 		// when all the bjet samples and data are ready and start to pull the signal from all of them:
-		output_folder = ps->getPara<TString>("step2output_folder");
 		TString output_name = ps->getPara<TString>("bjetMC_step2output_name");
 		TString input_file;
 		input_file = ps->getPara<TString>("bjetMC_step2input_rg_file");
@@ -150,7 +153,6 @@ void bjtcAnalyzer_Step2::bjetMCwf101(){
 }
 
 void bjtcAnalyzer_Step2::dijetMCwf101(){
-		output_folder = ps->getPara<TString>("step2output_folder");
 		TString output_name = ps->getPara<TString>("dijetMC_step2output_name");
 		TString input_file;
 		input_file = ps->getPara<TString>("dijetMC_step2input_rg_file");
