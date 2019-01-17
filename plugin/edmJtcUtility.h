@@ -28,10 +28,12 @@ namespace jtc_utility {
 		Double_t seagull_pol2_par3(Double_t *x, Double_t *par){
 				//fitting function is: a0+a1*|x-x0|+a2*x+a3*x^2;
 				// total 4 parameters: npar = 4 
-				float x0 = 0.5;
+				float x0 = 0.28;
 				if(x[0] < x0 && x[0] > -x0) return par[0];
-				else if( x[0]<-x0 ) return -par[1]*(x[0]+x0)+par[0]+par[2]*x[0]+par[3]*pow(x[0]-x0, 2);
-				else return par[1]*(x[0]-x0)+par[0]+par[2]*x[0]+par[3]*pow(x[0]-x0, 2);
+				else if( x[0]<-x0 ) return par[1]*(x[0]+x0)+par[0]+par[3]*pow(x[0]-x0, 2);
+				else return par[2]*(x[0]-x0)+par[0]+par[3]*pow(x[0]-x0, 2);
+				//else if( x[0]<-x0 ) return -par[1]*(x[0]+x0)+par[0]+par[3]*pow(x[0]-x0, 2);
+				//else return par[1]*(x[0]-x0)+par[0]+par[3]*pow(x[0]-x0, 2);
 				//else if( x[0]<-x0 ) return -par[1]*(x[0]+x0)+par[0]+par[2]*pow(x[0], 2);
 				//else return par[1]*(x[0]-x0)+par[0]+par[2]*pow(x[0], 2);
 		}

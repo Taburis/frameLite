@@ -100,7 +100,7 @@ int edmJtcAnalyzer::analyze(){
 						m2producer(i,j)->produce();
 				}
 		}
-		if(doSeagullCorr) mm->SaveAs("");
+		if(doSeagullCorr) gAnaIO.saveCanvas((TCanvas*)mm, "check_sg_"+sig_name);
 		if(doQA){
 				signal_deta_qa();
 		}
@@ -137,28 +137,26 @@ void edmJtcAnalyzer::signal_deta_qa(){
 	jm.flash();
 	matrixTH1Ptr m2sig_deta("deta_"+sig_name, m2sig.Nrow(), m2sig.Ncol() ); 		
 	matrixTH1Ptr m2sig_deta0("deta0_"+sig_name, m2sig.Nrow(), m2sig.Ncol() ); 		
-	matrixTH1Ptr m2sig_side_deta("deta_side_"+sig_name, m2sig.Nrow(), m2sig.Ncol() ); 		
+//	matrixTH1Ptr m2sig_side_deta("deta_side_"+sig_name, m2sig.Nrow(), m2sig.Ncol() ); 		
 	matrixTH1Ptr m2sig_side_deta0("deta_side0_"+sig_name, m2sig.Nrow(), m2sig.Ncol() ); 		
 	jm.pad_map = ps->getPara<mapper_func>("pad_map");
 	jm.pad_title = ps->getPara<TString (*)(int, int)>("pad_title");
 	jm.makeTitle = 1;
 	for(int i=0; i<m2sig.Nrow(); ++i){
 			for(int j=0; j<m2sig.Ncol(); ++j){
-					auto h = jtc_utility::projX(1, m2producer(i,j)->sig_step3, -1, .99, "");
+					auto h = jtc_utility::projX(1, m2producer(i,j)->sig, -1, .99, "");
 					h->Scale(0.5);
 					h->GetXaxis()->SetTitleSize(0.06);
 					h->GetXaxis()->SetLabelSize(0.06);
 					m2sig_deta0.add(h, i, j);
-					h = jtc_utility::projX(1, m2producer(i,j)->sig_step2, 1.4, 1.8, "e");
-					h->Scale(1./0.2);
-					//cout<<i<<", "<<j<<": ";
-					h->SetTitle(h->GetName());
+					//h = jtc_utility::projX(1, m2producer(i,j)->sig_step2, 1.4, 1.8, "e");
+					//h->Scale(1./0.4);
+					//m2sig_side_deta.add(h, i, j);
+					h = jtc_utility::projX(1, m2producer(i,j)->sig, 1.4, 1.8, "e");
+					h->Scale(1./0.4);
 					h->GetXaxis()->SetTitleSize(0.06);
 					h->GetXaxis()->SetLabelSize(0.06);
 					jm.errorDrivenRange(h, -2.5, 2.5);
-					m2sig_side_deta.add(h, i, j);
-					h = jtc_utility::projX(1, m2producer(i,j)->sig_step3, 1.4, 1.8, "e");
-					h->Scale(1./0.2);
 					m2sig_side_deta0.add(h, i, j);
 					h = jtc_utility::projX(1, m2producer(i,j)->sig, -1, .99, "");
 					m2sig_deta.add(h, i, j);
@@ -169,16 +167,16 @@ void edmJtcAnalyzer::signal_deta_qa(){
 	jm.addm2TH1(&m2sig_deta);
 	jm.x1=-3; jm.x2 = 2.99;
 	jm.doSave=1;
-	jm.overlay("qa_Signal_deta_"+sig_name+".gif");
+	jm.overlay("qa_Signal_deta_"+sig_name+gAnaIO.plotFormat);
 	jm.autoYrange = 0;
 	jm.flash();
 	jm.addm2TH1(&m2sig_side_deta0);
-	jm.addm2TH1(&m2sig_side_deta);
+//	jm.addm2TH1(&m2sig_side_deta);
 	jm.addm2TH1(&m2sig_deta0);
-	jm.overlay("qa_seagull"+sig_name+".gif");
+	jm.overlay("qa_seagull_"+sig_name+gAnaIO.plotFormat);
 	m2sig_deta.cleanAll();
 	m2sig_deta0.cleanAll();
-	m2sig_side_deta.cleanAll();
+//	m2sig_side_deta.cleanAll();
 	m2sig_side_deta0.cleanAll();
 	jm.flash();
 }

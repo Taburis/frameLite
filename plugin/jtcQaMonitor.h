@@ -23,7 +23,7 @@ class jtcQaMonitor{
 				 void setTitlePosition(float a, float b){xtitle = a; ytitle = b;}
 				 void setYrange(float a, float b){y1 = a; y2 = b; fixYrange = 1;}
 				 void addhLine(float a){yline = a; drawLine = 1;}
-				 void errorDrivenRange(TH1* h, float x01, float x02){// the error range
+				 void errorDrivenRange(TH1* h, float x01, float x02, int upscale=10, int lowscale=8){// the error range
 						 int n1 = h->GetXaxis()->FindBin(x01);
 						 int n2 = h->GetXaxis()->FindBin(x02);
 						 float mean = h->Integral(n1, n2)/(n2-n1+1);
@@ -34,7 +34,7 @@ class jtcQaMonitor{
 						 }
 						 float dvt = err/nsum;
 						 //cout<<"mean: "<<mean<<", dvt: "<<dvt<<endl;
-						 h->SetAxisRange(mean-5*dvt, mean+10*dvt, "Y");
+						 h->SetAxisRange(mean-lowscale*dvt, mean+upscale*dvt, "Y");
 				 }
 				 void setXndivision(int x){xndivision = x;}
 				 void setYndivision(int y){yndivision = y;}

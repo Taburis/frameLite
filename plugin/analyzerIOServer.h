@@ -18,16 +18,19 @@ class AnalyzerIOServer {
 						 c->SaveAs(output_plot_path+name+plotFormat);
 				 }
 				 TFile* bookRootFile(TString name, TString opt){
-						auto wf = TFile::Open(output_root_path+name, opt);
-						return wf;
+						auto f = TFile::Open(output_root_path+name, opt);
+						return f;
+				 }
+				 TFile *getRootFile(TString name){
+						 return TFile::Open(input_root_path+name);
 				 }
 
 				 ParaSet *cfg = nullptr;
-				 TString output_plot_path;
-				 TString output_root_path;
-				 TString plotFormat=".gif";
+				 TString output_plot_path = "./";
+				 TString output_root_path = "./";
+				 TString input_root_path  = "./";
+				 TString plotFormat=".eps";
 				 jtcQaMonitor qam;
-				 
 };
 
 AnalyzerIOServer gAnaIO;
