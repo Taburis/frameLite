@@ -135,6 +135,7 @@ void edmJtcAnalyzer::check_phi_sideband(TString cname){
 
 void edmJtcAnalyzer::signal_deta_qa(){
 	jm.flash();
+	TString label = doSeagullCorr ? "_fixSg_" : "";
 	matrixTH1Ptr m2sig_deta("deta_"+sig_name, m2sig.Nrow(), m2sig.Ncol() ); 		
 	matrixTH1Ptr m2sig_side_deta("deta_side_"+sig_name, m2sig.Nrow(), m2sig.Ncol() ); 		
 	jm.pad_map = ps->getPara<mapper_func>("pad_map");
@@ -163,12 +164,12 @@ void edmJtcAnalyzer::signal_deta_qa(){
 	jm.addm2TH1(&m2sig_deta);
 	jm.x1=-3; jm.x2 = 2.99;
 	jm.doSave=0;
-	gAnaIO.saveCanvas(jm.overlay("qa_Signal_deta_"+sig_name), "qa_Signal_deta_"+sig_name);
+	gAnaIO.saveCanvas(jm.overlay("qa_Signal_deta_"+label+sig_name), "qa_Signal_deta_"+label+sig_name);
 	jm.autoYrange = 0;
 	jm.flash();
 	jm.addm2TH1(&m2sig_side_deta);
 	jm.addm2TH1(&m2sig_deta);
-	gAnaIO.saveCanvas(jm.overlay("qa_seagull_"+sig_name), "qa_seagull_"+sig_name);
+	gAnaIO.saveCanvas(jm.overlay("qa_seagull_"+label+sig_name), "qa_seagull_"+label+sig_name);
 	m2sig_deta.cleanAll();
 	m2sig_side_deta.cleanAll();
 	jm.flash();

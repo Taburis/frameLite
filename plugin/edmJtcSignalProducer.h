@@ -103,7 +103,7 @@ void edmJtcSignalProducer::produce(){
 		getSignal(name);	
 		if(dodrIntegral){
 				dr0 = jtc_utility::doDrIntegral("raw_"+name, raw_sig, ndrbin, drbins);
-				dr_shape_step2 = jtc_utility::doDrIntegral("mix_correctd_"+name, sig_step2, ndrbin, drbins);
+				dr_shape_step2 = jtc_utility::doDrIntegral("mix_corrected_"+name, sig_step2, ndrbin, drbins);
 				dr_shape = jtc_utility::doDrIntegral("signal_"+name, sig, ndrbin, drbins);
 		}
 }
@@ -111,6 +111,7 @@ void edmJtcSignalProducer::produce(){
 void edmJtcSignalProducer::write(){
 		if(sig!=0) sig->Write();
 		if(sig_step2 != 0) sig_step2->Write();
+		if(sig_step3 != 0) sig_step3->Write();
 		if(mix_norm!=0) mix_norm->Write();
 		if(dr0 !=0) dr0->Write();
 		if(dr_shape !=0) dr_shape->Write();

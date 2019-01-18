@@ -41,6 +41,7 @@ ParaSet makePSet_bjtc_pp_step23(){
 		TString fdijetMC_rr = "bJTC_PYTHIA6_RecRec_5TeV_dijetMC_wtaAxis_11Jan19.root";
 		TString fdata = "bJTC_pp_data_5TeV_wtaAxis_7Jan19.root";
 		ParaSet st("bjtc_pp_allstep_pset");
+		//st.setPara<TString>("step2output_folder", "/Users/tabris/frameLite/output/step2_noSeagull/");
 		st.setPara<TString>("step2output_folder", "/Users/tabris/frameLite/output/step2/");
 		st.setPara<TString>("bjetMC_step2output_name", "Signal_PYTHIA6_bjetSample_allJets");
 		st.setPara<TString>("bjetMC_step2input_rg_file", inputfolder+fbjetMC_rg);
@@ -53,7 +54,7 @@ ParaSet makePSet_bjtc_pp_step23(){
 		st.setPara<TString>("dijetMC_step2output_name", "Signal_PYTHIA6_dijetSample_allJets");
 		st.setPara<TString>("pp5TeVData_step2output_name", "Signal_pp5TeVData_allJets");
 		st.setPara<bool>("doQA", 1);
-		st.setPara<bool>("doSeagullCorr", 1);
+		st.setPara<bool>("doSeagullCorr", 0);
 
 		st.setPara<mapper_func>("pad_map", bjtc_pp_config::arrange_pp_bjtc);
 		st.setPara<TString (*)(int, int)>("pad_title", bjtc_pp_config::pTtitle);

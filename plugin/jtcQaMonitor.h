@@ -40,8 +40,8 @@ class jtcQaMonitor{
 				 void setYndivision(int y){yndivision = y;}
 
 		public :// ParaSet * ps;
-				 jtc_utility::index2d (*pad_map) (int, int);
-				 TString (*pad_title) (int, int) = 0;
+				 jtc_utility::index2d (*pad_map) (int, int) = nullptr;
+				 TString (*pad_title) (int, int) = nullptr;
 
 				 // config to plot
 				 float x1, x2;
@@ -95,7 +95,7 @@ multi_canvas<TH1>* jtcQaMonitor::overlay(TString savename){
 						}
 				}
 		}
-		if(makeTitle && pad_title == 0){
+		if(makeTitle && pad_title == nullptr){
 				std::cout<<"ERROR: please specify the pad_title function first!"<<std::endl;
 				return nullptr;
 		}
@@ -114,9 +114,10 @@ multi_canvas<TH1>* jtcQaMonitor::overlay(TString savename){
 								m2th->at(i,j)->SetAxisRange(x1, x2,"X");
 								if(autoYrange) m2th->at(i,j)->SetAxisRange(min[i+j*npt]-1.5*grid, max[i+j*npt]+1.5*grid,"Y");
 								if(fixYrange) m2th->at(i,j)->SetAxisRange(y1, y2, "Y");
-								auto index = pad_map(i,j);
-								//std::cout<<index.i1<<", "<<index.i2<<std::endl;
-								cm->CD(index.i1, index.i2);
+								if(pad_map != nullptr){ 
+										auto index = pad_map(i,j);
+										cm->CD(index.i1, index.i2);
+								} else cm->cd(i+1);
 								m2th->at(i,j)->GetXaxis()->CenterTitle();
 								m2th->at(i,j)->Draw("same");
 								if(makeTitle)  tx.DrawLatexNDC(xtitle, ytitle, pad_title(i,j));
