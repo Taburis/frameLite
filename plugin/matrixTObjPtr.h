@@ -90,6 +90,7 @@ class matrixTObjPtr : public matrixPtrHolder<T>{
 class matrixTH1Ptr : public matrixTObjPtr<TH1>{
 		public : matrixTH1Ptr(): matrixTObjPtr<TH1>(){};
 				 matrixTH1Ptr(const char * _name, int n, int m): matrixTObjPtr<TH1>(_name, n,m) {}
+				 matrixTH1Ptr(matrixTH1Ptr& m2): matrixTObjPtr<TH1>(TString("cl_"+m2.name), m2.Nrow(), m2.Ncol()) {}
 				 void setName(const char* _name) {
 						 name = _name;
 						 for(int j=0; j<matrixTObjPtr<TH1>::ncol; ++j){
@@ -154,7 +155,7 @@ class multi_canvas : public TCanvas{
 						m2ptr = &p;
 						Divide(ncol, nrow);
 				}
-				multi_canvas(TString name, TString title, int mrow, int mcol): TCanvas(name, title, mcol*325, mrow*325)
+				multi_canvas(TString name, TString title, int mrow, int mcol, float wd=325, float hi=325): TCanvas(name, title, mcol*wd, mrow*hi)
 		{
 				nrow= mrow;
 				ncol= mcol;

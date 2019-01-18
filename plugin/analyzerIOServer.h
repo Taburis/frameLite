@@ -17,6 +17,7 @@ class AnalyzerIOServer {
 				 void saveCanvas(TCanvas *c, TString name){
 						 c->SaveAs(output_plot_path+name+plotFormat);
 						 delete c;
+						 qam.flash();
 				 }
 				 TFile* bookRootFile(TString name, TString opt){
 						auto f = TFile::Open(output_root_path+name, opt);
