@@ -1,5 +1,6 @@
 
 #include "edmJtcUtility.h"
+#include "analyzerIOServer.h"
 #include "ParaSet.h"
 #include "TString.h"
 namespace bjtc_pp_config{
@@ -63,5 +64,10 @@ ParaSet makePSet_bjtc_pp_step23(){
 		return st;
 }
 
-
+void init(){
+		auto _ps1_ = makePSet_bjtc_pp_step23();
+		auto _ps2_ = makePSet_edmJtcDefault();
+		auto _psall_ = _ps1_+_ps2_;
+		g_cfg = &_psall_;
+}
 

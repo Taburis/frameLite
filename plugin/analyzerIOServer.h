@@ -8,12 +8,12 @@
 #include "TFile.h"  
 #include "TString.h"  
 
-ParaSet* gCfg;
+ParaSet *g_cfg;
 
 class AnalyzerIOServer {
 		public : AnalyzerIOServer(){};
 				 ~AnalyzerIOServer(){};
-				 void setGCfg(ParaSet &ps){ cfg = &ps; gCfg = &ps;}
+				 void setGCfg(ParaSet &ps){ cfg = &ps; g_cfg = &ps;}
 				 void saveCanvas(TCanvas *c, TString name){
 						 c->SaveAs(output_plot_path+name+plotFormat);
 						 delete c;
