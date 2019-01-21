@@ -7,6 +7,7 @@
 #include "ParaSet.h"
 #include "TLatex.h"
 #include "TLine.h"
+#include "TLegend.h"
 
 Color_t color_vec[6]={kBlue+1, kRed+1, kGreen+2, kAzure+7, kMagenta+2, kBlack};
 
@@ -19,9 +20,15 @@ class jtcQaMonitor{
 				 multi_canvas<TH1>* overlayR(TString savename = "Ra", TString opt = "");
 				 void flash(){
 						 if(needDelete)for(auto &it : vm2th1) delete it;
+						 needDelete = 0;
 						 for(auto &it : subpad) delete it;
 						 vm2th1.clear();
 						 vm2pair.clear();
+						 if(tleg!=nullptr) delete tleg;
+				 }
+				 void addLegend(float x1=0.65, float y1= 0.55, float x2=.96, float y2=.75){
+						 tleg = new TLegend(x1,y1, x2, y2);
+						 tleg->SetLineColor(0);
 				 }
 				 void addm2TH1(matrixTH1Ptr* m2){
 						 vm2th1.push_back(m2);
@@ -73,6 +80,15 @@ class jtcQaMonitor{
 				 }
 				 void setXndivision(int x){xndivision = x;}
 				 void setYndivision(int y){yndivision = y;}
+				 void addLegendEntry(TString s, int n, TString opt = "pl"){
+						 tleg->AddEntry((vm2th1[n])->at(0,0), s, opt);
+						 makeLegend =1;
+				 }
+				 void addLegendPair(TString s1, TString s2, int n, TString opt = "pl"){
+						 tleg->AddEntry(((vm2pair[n]).first)->at(0,0), s1, opt);
+						 tleg->AddEntry(((vm2pair[n]).second)->at(0,0), s2, opt);
+						 makeLegend =1;
+				 }
 
 		public :// ParaSet * ps;
 				 jtc_utility::index2d (*pad_map) (int, int) = nullptr;
@@ -84,7 +100,7 @@ class jtcQaMonitor{
 				 float xtitle = 0.5, ytitle =0.85;
 				 bool fixXrange = 0, fixYrange = 0, autoYrange = 1, fixRatioRange = 0;
 				 //pad config
-				 bool doSave = 0, makeTitle = 0, needDelete = 0;
+				 bool doSave = 0, makeTitle = 0, needDelete = 0, makeLegend = 0;
 				 int ncol = 1, nrow = 1;
 				 int npt, ncent;
 				 float xline , yline, yratioLine;
@@ -96,6 +112,7 @@ class jtcQaMonitor{
 				 int xndivision = 505, yndivision = 505;
 				 TLine tl;
 				 TLatex tx;  
+				 TLegend* tleg = nullptr;  
 };
 
 multi_canvas<TH1>* jtcQaMonitor::overlay(TString savename, bool drawShape){
@@ -182,7 +199,6 @@ multi_canvas<TH1>* jtcQaMonitor::overlayR(TString savename, TString opt){
 				else h = (*(it.first))/(*(it.second));
 				vm2th1.push_back(h);
 		}
-		cout<<vm2th1.size()<<endl;
 		npt   = vm2th1[0]->nrow;
 		ncent = vm2th1[0]->ncol;
 		float min[npt*ncent];
@@ -200,6 +216,7 @@ multi_canvas<TH1>* jtcQaMonitor::overlayR(TString savename, TString opt){
 								i1 = i; i2 = j;
 								cm->cd(i1+i2+1);
 						}
+						//cout<<i<<","<<j<<endl;
 						TString padname = Form("subpad_%d_%d_0",i,j);
 						subpad[2*i1*ncol+2*i2] = new TPad(padname, "", 0.0, r, 1, 1);
 						padname = Form("subpad_%d_%d_1",i,j);  
@@ -258,6 +275,7 @@ multi_canvas<TH1>* jtcQaMonitor::overlayR(TString savename, TString opt){
 				int color_index = 0;
 				for(int i=0; i<npt ; ++i){
 						for(int j=0; j<ncent; ++j){
+								//cout<<i<<", "<<j<<endl;
 								jtc_utility::index2d index;
 								float grid = (max[i+j*npt]-min[i+j*npt])/16;
 								style0(m2th1->at(i,j), color_vec[color_index]);
@@ -272,6 +290,12 @@ multi_canvas<TH1>* jtcQaMonitor::overlayR(TString savename, TString opt){
 								upper_pad_cfg(m2th1->at(i,j));
 								m2th1->at(i,j)->Draw();
 								m2th2->at(i,j)->Draw("same");
+
+								if(makeLegend && tleg!=nullptr &&(i+j) ==0) tleg->Draw();
+								else if(makeLegend && tleg == nullptr){
+										std::cout<<"ERROR: please call addLegend() before drawing"<<std::endl;
+								}
+
 								if(makeTitle)  tx.DrawLatexNDC(xtitle, ytitle, pad_title(i,j));
 								if(drawLine ){
 										if(autoYrange && min[i+j*npt]-1.5*grid < yline && max[i+j*npt]+1.5*grid > yline) tl.DrawLine(x1, yline, x2, yline);
@@ -281,6 +305,7 @@ multi_canvas<TH1>* jtcQaMonitor::overlayR(TString savename, TString opt){
 								} else padcd(i, j ,1)->cd();
 								lower_pad_cfg(m2rat->at(i,j));
 								if(fixRatioRange) m2rat->at(i,j)->SetAxisRange(yR1, yR2, "Y");
+								if(fixXrange) m2rat->at(i,j)->SetAxisRange(x1, x2,"X");
 								m2rat->at(i,j)->GetXaxis()->SetTitle(m2th1->at(i,j)->GetXaxis()->GetTitle());
 								m2rat->at(i,j)->Draw();
 								if(ratioLine){
@@ -296,7 +321,6 @@ multi_canvas<TH1>* jtcQaMonitor::overlayR(TString savename, TString opt){
 		}
 
 		needDelete = 1;
-
 		return cm;
 }
 

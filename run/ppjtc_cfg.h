@@ -58,7 +58,7 @@ ParaSet makePSet_bjtc_pp_step23(){
 		st.setPara<TString>("dijetMC_step2output_name", "Signal_PYTHIA6_dijetSample_allJets");
 		st.setPara<TString>("pp5TeVData_step2output_name", "Signal_pp5TeVData_allJets");
 		st.setPara<bool>("doQA", 1);
-		st.setPara<bool>("doSeagullCorr", 0);
+		st.setPara<bool>("doSeagullCorr", 1);
 
 		st.setPara<mapper_func>("pad_map", bjtc_pp_config::arrange_pp_bjtc);
 		st.setPara<TString (*)(int, int)>("pad_title", bjtc_pp_config::pTtitle);
@@ -67,11 +67,15 @@ ParaSet makePSet_bjtc_pp_step23(){
 		return st;
 }
 
-void init(){
+ParaSet init(){
 		auto _ps1_ = makePSet_bjtc_pp_step23();
 		auto _ps2_ = makePSet_edmJtcDefault();
 		auto _psall_ = _ps1_+_ps2_;
 		g_cfg = &_psall_;
 		gAnaIO.output_plot_path = g_cfg->getPara<TString>("testQA");
+		gQA->ncol = g_cfg->getPara<int>("pad_ncol");
+		gQA->nrow = g_cfg->getPara<int>("pad_nrow");
+		gQA->pad_title = g_cfg->getPara<TString (*)(int,int)>("pad_title");
+		return _psall_;
 }
 

@@ -30,7 +30,6 @@ class edmJtcAnalyzer : public rootEDMAnalyzer{
 				 void check_phi_sideband(TString name);
 				 void signal_deta_qa();
 
-				 jtcQaMonitor jm;
 				 matrixTObjPtr<TH2D> m2sig;
 				 matrixTObjPtr<TH2D> m2mix;
 				 matrixPtrHolder<edmJtcSignalProducer> m2producer;
@@ -134,13 +133,13 @@ void edmJtcAnalyzer::check_phi_sideband(TString cname){
 }
 
 void edmJtcAnalyzer::signal_deta_qa(){
-	jm.flash();
+	gQA->flash();
 	TString label = doSeagullCorr ? "_fixSg_" : "";
 	matrixTH1Ptr m2sig_deta("deta_"+sig_name, m2sig.Nrow(), m2sig.Ncol() ); 		
 	matrixTH1Ptr m2sig_side_deta("deta_side_"+sig_name, m2sig.Nrow(), m2sig.Ncol() ); 		
-	jm.pad_map = ps->getPara<mapper_func>("pad_map");
-	jm.pad_title = ps->getPara<TString (*)(int, int)>("pad_title");
-	jm.makeTitle = 1;
+	gQA->pad_map = ps->getPara<mapper_func>("pad_map");
+	gQA->pad_title = ps->getPara<TString (*)(int, int)>("pad_title");
+	gQA->makeTitle = 1;
 	for(int i=0; i<m2sig.Nrow(); ++i){
 			for(int j=0; j<m2sig.Ncol(); ++j){
 					auto h = jtc_utility::projX(1, m2producer(i,j)->sig, -1, .99, "");
@@ -155,23 +154,23 @@ void edmJtcAnalyzer::signal_deta_qa(){
 					h->Scale(1./0.4);
 					h->GetXaxis()->SetTitleSize(0.06);
 					h->GetXaxis()->SetLabelSize(0.06);
-					jm.errorDrivenRange(h, -2.5, 2.5);
+					gQA->errorDrivenRange(h, -2.5, 2.5);
 					m2sig_side_deta.add(h, i, j);
 			}
 	}
-	jm.autoYrange = 1;
-	jm.addhLine(0);
-	jm.addm2TH1(&m2sig_deta);
-	jm.x1=-3; jm.x2 = 2.99;
-	jm.doSave=0;
-	gAnaIO.saveCanvas(jm.overlay("qa_Signal_deta_"+label+sig_name), "qa_Signal_deta_"+label+sig_name);
-	jm.autoYrange = 0;
-	jm.flash();
-	jm.addm2TH1(&m2sig_side_deta);
-	jm.addm2TH1(&m2sig_deta);
-	gAnaIO.saveCanvas(jm.overlay("qa_seagull_"+label+sig_name), "qa_seagull_"+label+sig_name);
+	gQA->autoYrange = 1;
+	gQA->addhLine(0);
+	gQA->addm2TH1(&m2sig_deta);
+	gQA->x1=-3; gQA->x2 = 2.99;
+	gQA->doSave=0;
+	gAnaIO.saveCanvas(gQA->overlay("qa_Signal_deta_"+label+sig_name), "qa_Signal_deta_"+label+sig_name);
+	gQA->autoYrange = 0;
+	gQA->flash();
+	gQA->addm2TH1(&m2sig_side_deta);
+	gQA->addm2TH1(&m2sig_deta);
+	gAnaIO.saveCanvas(gQA->overlay("qa_seagull_"+label+sig_name), "qa_seagull_"+label+sig_name);
 	m2sig_deta.cleanAll();
 	m2sig_side_deta.cleanAll();
-	jm.flash();
+	gQA->flash();
 }
 #endif

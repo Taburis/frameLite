@@ -17,7 +17,7 @@ class AnalyzerIOServer {
 				 void saveCanvas(TCanvas *c, TString name){
 						 c->SaveAs(output_plot_path+name+plotFormat);
 						 qam.flash();
-						 //delete c;
+						 delete c;
 				 }
 				 TFile* bookRootFile(TString name, TString opt){
 						auto f = TFile::Open(output_root_path+name, opt);
@@ -36,6 +36,6 @@ class AnalyzerIOServer {
 };
 
 AnalyzerIOServer gAnaIO;
-jtcQaMonitor* gQAmonitor = &(gAnaIO.qam);
+jtcQaMonitor* gQA= &(gAnaIO.qam);
 
 #endif
