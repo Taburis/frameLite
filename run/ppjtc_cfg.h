@@ -42,6 +42,9 @@ ParaSet makePSet_bjtc_pp_step23(){
 		TString fdijetMC_rr = "bJTC_PYTHIA6_RecRec_5TeV_dijetMC_wtaAxis_11Jan19.root";
 		TString fdata = "bJTC_pp_data_5TeV_wtaAxis_7Jan19.root";
 		ParaSet st("bjtc_pp_allstep_pset");
+
+		st.setPara<TString>("testQA", "/Users/tabris/frameLite/output/testQA/");
+
 		//st.setPara<TString>("step2output_folder", "/Users/tabris/frameLite/output/step2_noSeagull/");
 		st.setPara<TString>("step2output_folder", "/Users/tabris/frameLite/output/step2/");
 		st.setPara<TString>("bjetMC_step2output_name", "Signal_PYTHIA6_bjetSample_allJets");
@@ -69,5 +72,6 @@ void init(){
 		auto _ps2_ = makePSet_edmJtcDefault();
 		auto _psall_ = _ps1_+_ps2_;
 		g_cfg = &_psall_;
+		gAnaIO.output_plot_path = g_cfg->getPara<TString>("testQA");
 }
 

@@ -79,16 +79,15 @@ class jtcQaMonitor{
 				 TString (*pad_title) (int, int) = nullptr;
 
 				 // config to plot
-				 float x1, x2;
+				 float x1 = 1, x2 = -1;
 				 float y1, y2, yR1, yR2;
 				 float xtitle = 0.5, ytitle =0.85;
-				 bool fixYrange = 0, autoYrange = 1, fixRatioRange = 0;
+				 bool fixXrange = 0, fixYrange = 0, autoYrange = 1, fixRatioRange = 0;
 				 //pad config
 				 bool doSave = 0, makeTitle = 0, needDelete = 0;
 				 int ncol = 1, nrow = 1;
 				 int npt, ncent;
 				 float xline , yline, yratioLine;
-				 bool fixXrange = 0;
 				 bool drawLine = 0 , ratioLine = 0;
 				 std::vector<matrixTH1Ptr*> vm2th1;
 				 std::vector<std::pair<matrixTH1Ptr*, matrixTH1Ptr*>> vm2pair;
@@ -183,6 +182,7 @@ multi_canvas<TH1>* jtcQaMonitor::overlayR(TString savename, TString opt){
 				else h = (*(it.first))/(*(it.second));
 				vm2th1.push_back(h);
 		}
+		cout<<vm2th1.size()<<endl;
 		npt   = vm2th1[0]->nrow;
 		ncent = vm2th1[0]->ncol;
 		float min[npt*ncent];
@@ -191,9 +191,15 @@ multi_canvas<TH1>* jtcQaMonitor::overlayR(TString savename, TString opt){
 
 		for(int i=0; i<npt; i++){
 				for(int j=0; j<ncent; j++){
-						auto indx = pad_map(i,j);
-						int i1=indx.i1, i2 = indx.i2;
-						cm->CD(i1, i2);
+						int i1, i2;
+						if(pad_map!= nullptr){
+								auto indx = pad_map(i,j);
+								i1=indx.i1, i2 = indx.i2;
+								cm->CD(i1, i2);
+						} else {
+								i1 = i; i2 = j;
+								cm->cd(i1+i2+1);
+						}
 						TString padname = Form("subpad_%d_%d_0",i,j);
 						subpad[2*i1*ncol+2*i2] = new TPad(padname, "", 0.0, r, 1, 1);
 						padname = Form("subpad_%d_%d_1",i,j);  
@@ -275,9 +281,14 @@ multi_canvas<TH1>* jtcQaMonitor::overlayR(TString savename, TString opt){
 								} else padcd(i, j ,1)->cd();
 								lower_pad_cfg(m2rat->at(i,j));
 								if(fixRatioRange) m2rat->at(i,j)->SetAxisRange(yR1, yR2, "Y");
+								m2rat->at(i,j)->GetXaxis()->SetTitle(m2th1->at(i,j)->GetXaxis()->GetTitle());
 								m2rat->at(i,j)->Draw();
 								if(ratioLine){
-									   	tl.DrawLine(x1, yratioLine, x2, yratioLine);
+										if(!fixXrange){
+											   	x1=m2rat->at(i,j)->GetXaxis()->GetXmin();
+											   	x2=m2rat->at(i,j)->GetXaxis()->GetXmax();
+										}
+										tl.DrawLine(x1, yratioLine, x2, yratioLine);
 								}
 						}
 				}

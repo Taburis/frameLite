@@ -143,6 +143,21 @@ class matrixTH1Ptr : public matrixTObjPtr<TH1>{
 						 }
 						 return m2;
 				 }
+				 void normalized_by_area(float x = 1, float y = -1){
+						 for(int j=0; j<matrixTObjPtr<TH1>::ncol; ++j){
+								 for(int i=0; i<matrixTObjPtr<TH1>::nrow; i++){
+										 auto h = at(i,j);
+										 float area;
+										 if(x< y){
+												 int n1 = h->GetXaxis()->FindBin(x);
+												 int n2 = h->GetXaxis()->FindBin(y);
+												 area = h->Integral(n1, n2, "width");
+										 }else area = h->Integral("width");
+										 h->Scale(1.0/area);
+								 }
+						 }
+						 return;
+				 }
 
 };
 
