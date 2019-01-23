@@ -26,6 +26,9 @@ class matrixPtrHolder{
 						 // ref.push_back(ptr);
 						 ref[flatten(i,j)] = ptr;
 				 }
+				 int size(){return nrow*ncol;};
+				 bool isValid(int i, int j){// return 1 means i, j is valid
+						 return flatten(i,j) < size(); }
 				 void cleanAll(){for(auto & it: ref) delete it;}
 				 void transpose(){
 						 std::vector<T*> tmp(ref);
@@ -56,7 +59,14 @@ class matrixTObjPtr : public matrixPtrHolder<T>{
 						name = _name;
 				};
 				virtual ~matrixTObjPtr(){
-						if(doFree) for(auto & it : matrixPtrHolder<T>::ref) delete it;
+						if(doFree){
+								std::cout<<"deleting "<<matrixPtrHolder<T>::ref.size()<<" objects in "<<name<<std::endl;
+							   	for(auto & it : matrixPtrHolder<T>::ref){
+										std::cout<<"deleting "<<it->GetName()<<std::endl;
+									   	delete it;
+								}
+						}
+						doFree = 0;
 				};
 				matrixTObjPtr * deep_clone(const char * name_){
 						auto m2 = new matrixTObjPtr<T>();
@@ -109,6 +119,7 @@ class matrixTH1Ptr : public matrixTObjPtr<TH1>{
 										 m2->add(hh, i, j);
 								 }
 						 }
+						 m2->doFree = 1;
 						 return m2;
 				 }
 				 matrixTH1Ptr * operator+( matrixTH1Ptr & rhs){
@@ -120,6 +131,7 @@ class matrixTH1Ptr : public matrixTObjPtr<TH1>{
 										 m2->at(i,j)->Add(rhs(i,j));
 								 }
 						 }
+						 m2->doFree = 1;
 						 return m2;
 				 }
 				 matrixTH1Ptr * operator/( matrixTH1Ptr & rhs){
@@ -130,6 +142,7 @@ class matrixTH1Ptr : public matrixTObjPtr<TH1>{
 										 m2->at(i,j)->Divide(rhs(i,j));
 								 }
 						 }
+						 m2->doFree = 1;
 						 return m2;
 				 }
 
@@ -141,6 +154,7 @@ class matrixTH1Ptr : public matrixTObjPtr<TH1>{
 										 m2->at(i,j)->Divide(m2->at(i,j), rhs(i,j), 1, 1, "B");
 								 }
 						 }
+						 m2->doFree = 1;
 						 return m2;
 				 }
 				 void normalized_by_area(float x = 1, float y = -1){

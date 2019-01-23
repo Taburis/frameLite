@@ -20,6 +20,7 @@ int main(){
 		*/
 		bjtcAnalyzer_Step3 step3(ps_all);
 		step3.recoJetCheck();
+		step3.recoTrackCheck();
 		std::cout<<"Done"<<std::endl;
 		return 0;
 }

@@ -19,14 +19,27 @@ class jtcQaMonitor{
 				 multi_canvas<TH1>* overlay(TString savename = "", bool drawShape = 0);
 				 multi_canvas<TH1>* overlayR(TString savename = "Ra", TString opt = "");
 				 void flash(){
-						 if(needDelete)for(auto &it : vm2th1) delete it;
-						 needDelete = 0;
-						 for(auto &it : subpad) delete it;
+						 if(needDelete)for(auto &it : vm2pair){
+//								 it.first->cleanAll();
+//								 delete it.second;
+						 }
+						 if(needDelete){
+								 for(auto &it : subpad) delete it;
+								 for(auto &it : vm2th1) delete it;
+						 }
 						 vm2th1.clear();
 						 vm2pair.clear();
 						 if(tleg!=nullptr) delete tleg;
+						 tleg=nullptr;
+						 needDelete = 0;
 				 }
-				 void addLegend(float x1=0.65, float y1= 0.55, float x2=.96, float y2=.75){
+				 void drawLegend(){
+						 if(makeLegend && tleg!=nullptr ) tleg->Draw();
+						 else if(makeLegend && tleg == nullptr){
+								 std::cout<<"ERROR: please call bookLegend() before drawing"<<std::endl;
+						 }
+				 }
+				 void bookLegend(float x1=0.65, float y1= 0.55, float x2=.96, float y2=.75){
 						 tleg = new TLegend(x1,y1, x2, y2);
 						 tleg->SetLineColor(0);
 				 }
@@ -136,6 +149,7 @@ multi_canvas<TH1>* jtcQaMonitor::overlay(TString savename, bool drawShape){
 						m2th = vm2th1[k];
 						for(int i=0; i<npt ; ++i){
 								for(int j=0; j<ncent; ++j){
+										if(!(m2th->isValid(i,j))) continue;
 										float holder = m2th->at(i,j)->GetMaximum();
 										if(max[i+j*npt]< holder)  max[i+j*npt] = holder ;
 										holder = m2th->at(i,j)->GetMinimum();
@@ -152,6 +166,7 @@ multi_canvas<TH1>* jtcQaMonitor::overlay(TString savename, bool drawShape){
 				m2th = vm2th1[k];
 				for(int i=0; i<npt ; ++i){
 						for(int j=0; j<ncent; ++j){
+								if(!(m2th->isValid(i,j))) continue;
 								float grid = (max[i+j*npt]-min[i+j*npt])/16;
 								m2th->at(i,j)->SetLineColor(color_vec[k]);
 								m2th->at(i,j)->SetMarkerStyle(20);
@@ -170,6 +185,7 @@ multi_canvas<TH1>* jtcQaMonitor::overlay(TString savename, bool drawShape){
 								if(drawShape)m2th->at(i,j)->DrawNormalized("same");
 								else m2th->at(i,j)->Draw("same");
 								if(makeTitle)  tx.DrawLatexNDC(xtitle, ytitle, pad_title(i,j));
+								if(i+j==0) drawLegend();
 								if(drawLine ){
 										if(autoYrange && min[i+j*npt]-1.5*grid < yline && max[i+j*npt]+1.5*grid > yline) tl.DrawLine(x1, yline, x2, yline);
 										else tl.DrawLine(x1, yline, x2, yline);
@@ -291,11 +307,7 @@ multi_canvas<TH1>* jtcQaMonitor::overlayR(TString savename, TString opt){
 								m2th1->at(i,j)->Draw();
 								m2th2->at(i,j)->Draw("same");
 
-								if(makeLegend && tleg!=nullptr &&(i+j) ==0) tleg->Draw();
-								else if(makeLegend && tleg == nullptr){
-										std::cout<<"ERROR: please call addLegend() before drawing"<<std::endl;
-								}
-
+								if(i+j==0) drawLegend();
 								if(makeTitle)  tx.DrawLatexNDC(xtitle, ytitle, pad_title(i,j));
 								if(drawLine ){
 										if(autoYrange && min[i+j*npt]-1.5*grid < yline && max[i+j*npt]+1.5*grid > yline) tl.DrawLine(x1, yline, x2, yline);

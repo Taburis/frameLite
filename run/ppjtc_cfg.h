@@ -57,6 +57,7 @@ ParaSet makePSet_bjtc_pp_step23(){
 		st.setPara<TString>("pp5TeVData_step2input_file", inputfolder+fdata);
 		st.setPara<TString>("dijetMC_step2output_name", "Signal_PYTHIA6_dijetSample_allJets");
 		st.setPara<TString>("pp5TeVData_step2output_name", "Signal_pp5TeVData_allJets");
+		st.setPara<TString>("corr_output_name", "fCorr");
 		st.setPara<bool>("doQA", 1);
 		st.setPara<bool>("doSeagullCorr", 1);
 
