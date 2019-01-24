@@ -7,6 +7,7 @@
 #include "TCanvas.h"  
 #include "TFile.h"  
 #include "TString.h"  
+#include "TPDF.h"  
 
 ParaSet *g_cfg;
 

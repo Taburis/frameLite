@@ -7,7 +7,7 @@
 class bjtcAnalyzer_Step2 : public rootEDMAnalyzer {
 		public : 
 				bjtcAnalyzer_Step2(): rootEDMAnalyzer(){
-						 _nodeClassName_ = "bjtcAnalyzer_Step2";
+						_nodeClassName_ = "bjtcAnalyzer_Step2";
 				}
 				bjtcAnalyzer_Step2(ParaSet & p);
 				~bjtcAnalyzer_Step2(){// for(auto &it : analyzers) delete it;
@@ -20,6 +20,7 @@ class bjtcAnalyzer_Step2 : public rootEDMAnalyzer {
 				void dijetMCwf101();
 				void Datawf101();
 				void testWf001();
+				void inclCalo_Wf001();
 				virtual int analyze();
 
 		public : std::vector<edmJtcAnalyzer*> analyzers;
@@ -77,6 +78,46 @@ void bjtcAnalyzer_Step2::datawf001(const char * input, const char *output_captio
 		sig_name = "taggedBJet_Data_pTweighted";
 		openOpt = "update";
 		initAnalyzer();
+}
+
+void bjtcAnalyzer_Step2::inclCalo_Wf001(){
+		auto output_caption = ps->getPara<TString>("inclCaloJet_MC_step2output_name");
+
+		if( ps->exists("inclCaloJet_step2input_gg_file")){
+				infile = ps->getPara<TString> ("inclCaloJet_step2input_gg_file");
+				outputname = output_caption + jtc_utility::histNameScheme("_", 1, 1)+".root";
+				sig_name = jtc_utility::histNameScheme("inclCaloJet_", 1, 1);
+				mix_name = jtc_utility::histNameScheme("inclCaloJet_", 1, 1, 0, 1);
+				norm_name = "inclJet_corrpt";
+				openOpt = "recreate";
+				initAnalyzer();
+				sig_name = jtc_utility::histNameScheme("inclJet_", 1, 1, 1);
+				openOpt = "update";
+				initAnalyzer();	}
+
+		if( ps->exists("inclCaloJet_step2input_rg_file")){
+				infile = ps->getPara<TString> ("inclCaloJet_step2input_rg_file");
+				outputname = output_caption + jtc_utility::histNameScheme("_", 0, 1)+".root";
+				sig_name = jtc_utility::histNameScheme("inclJet_", 0, 1);
+				mix_name = jtc_utility::histNameScheme("inclJet_", 0, 1, 0, 1);
+				norm_name = "inclCaloJet_corrpt";
+				openOpt = "recreate";
+				initAnalyzer();
+				sig_name = jtc_utility::histNameScheme("inclJet_", 0, 1, 1);
+				openOpt = "update";
+				initAnalyzer();	}
+
+		if( ps->exists("inclCaloJet_step2input_rr_file")){
+				infile = ps->getPara<TString> ("inclCaloJet_step2input_rr_file");
+				outputname = output_caption + jtc_utility::histNameScheme("_", 0, 1)+".root";
+				sig_name = jtc_utility::histNameScheme("inclJet_", 0, 0);
+				mix_name = jtc_utility::histNameScheme("inclJet_", 0, 0, 0, 1);
+				norm_name = "inclCaloJet_corrpt";
+				openOpt = "recreate";
+				initAnalyzer();
+				sig_name = jtc_utility::histNameScheme("inclJet_", 0, 0, 1);
+				openOpt = "update";
+				initAnalyzer();	}
 }
 
 void bjtcAnalyzer_Step2::wf001(const char * input, const char *output_caption, bool isGenJet, bool isGenTrack){
@@ -166,7 +207,7 @@ void bjtcAnalyzer_Step2::dijetMCwf101(){
 int bjtcAnalyzer_Step2::analyze(){
 		printClassName();
 		for(auto &it : analyzers){
-			   	it->evaluate();
+				it->evaluate();
 				delete it;
 		}
 		return 0;

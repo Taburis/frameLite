@@ -65,6 +65,15 @@ ParaSet makePSet_bjtc_pp_step23(){
 		st.setPara<TString (*)(int, int)>("pad_title", bjtc_pp_config::pTtitle);
 		st.setPara<int>("pad_nrow", 2);
 		st.setPara<int>("pad_ncol", 3);
+
+		inputfolder = "/Users/tabris/cmsProjects/iJTC/dataSet/bJTC/myCorrelation/trunk/inclRef/";
+		TString calo_gg = "inclCaloJet_GenGen_JTCSignal.root";
+		TString calo_rg = "inclCaloJet_RecGen_JTCSignal.root";
+		TString calo_rr = "inclCaloJet_RecRec_JTCSignal.root";
+		st.setPara<TString>("inclCaloJet_MC_step2output_name", "Signal_PYTHIA6_dijetSample_CaloJets");
+		st.setPara<TString>("inclCaloJet_step2input_gg_file", inputfolder+calo_gg);
+		st.setPara<TString>("inclCaloJet_step2input_rg_file", inputfolder+calo_rg);
+		st.setPara<TString>("inclCaloJet_step2input_rr_file", inputfolder+calo_rr);
 		return st;
 }
 

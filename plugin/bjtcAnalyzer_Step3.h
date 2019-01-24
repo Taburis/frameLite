@@ -96,6 +96,7 @@ void bjtcAnalyzer_Step3::recoJetCheck(){
 }
 
 void bjtcAnalyzer_Step3::recoTrackCheck(){
+		gQA->pad_map = ps->getPara<mapper_func>("pad_map");
 		matrixTH1Ptr* m2tt_rr = new matrixTH1Ptr("dr_raw_taggedTrueBJet_RecoJet_RecoTrack_noCorr", npt, ncent);
 		matrixTH1Ptr* m2tt_rg = new matrixTH1Ptr("dr_raw_taggedTrueBJet_RecoJet_GenTrack_noCorr", npt, ncent);
 		m2tt_rr->autoLoad(fbMC_rr);
@@ -109,6 +110,7 @@ void bjtcAnalyzer_Step3::recoTrackCheck(){
 		gQA->setXrange(0, 0.99);
 		gQA->setLowerYrange(0.6, 1.05);
 		gQA->makeTitle = 1;
+//		gQA->overlayR();
 		gAnaIO.saveCanvas(gQA->overlayR(), "taggedTrueBJetRatio_trackRecoCorr");
 }
 

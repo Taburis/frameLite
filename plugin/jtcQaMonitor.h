@@ -16,6 +16,13 @@ class jtcQaMonitor{
 						 tl.SetLineStyle(2);
 						 tx.SetTextSize(.06);
 				 };
+				 ~jtcQaMonitor(){
+						 for(auto &it : vm2trash) delete it;
+						 for(auto &it : vcanvas_trash){
+								 it->Close();
+//								 delete it;
+						 }
+				 }
 				 multi_canvas<TH1>* overlay(TString savename = "", bool drawShape = 0);
 				 multi_canvas<TH1>* overlayR(TString savename = "Ra", TString opt = "");
 				 void flash(){
@@ -24,13 +31,13 @@ class jtcQaMonitor{
 //								 delete it.second;
 						 }
 						 if(needDelete){
-								 for(auto &it : subpad) delete it;
-								 for(auto &it : vm2th1) delete it;
+//								 for(auto &it : subpad) delete it;
+								 for(auto it : vm2th1) vm2trash.push_back(it);
 						 }
-						 vm2th1.clear();
-						 vm2pair.clear();
 						 if(tleg!=nullptr) delete tleg;
 						 tleg=nullptr;
+						 vm2th1.clear();
+						 vm2pair.clear();
 						 needDelete = 0;
 				 }
 				 void drawLegend(){
@@ -119,6 +126,8 @@ class jtcQaMonitor{
 				 float xline , yline, yratioLine;
 				 bool drawLine = 0 , ratioLine = 0;
 				 std::vector<matrixTH1Ptr*> vm2th1;
+				 std::vector<matrixTH1Ptr*> vm2trash;
+				 std::vector<TCanvas*> vcanvas_trash;
 				 std::vector<std::pair<matrixTH1Ptr*, matrixTH1Ptr*>> vm2pair;
 				 std::vector<TPad*> subpad; 
 				 // pad style config
@@ -194,6 +203,7 @@ multi_canvas<TH1>* jtcQaMonitor::overlay(TString savename, bool drawShape){
 						}
 				}
 		}
+		vcanvas_trash.push_back(cm);
 		if(doSave) cm->SaveAs(savename);
 		return cm;
 }
@@ -332,7 +342,9 @@ multi_canvas<TH1>* jtcQaMonitor::overlayR(TString savename, TString opt){
 				color_index = color_index+2;
 		}
 
+		cm->Update();
 		needDelete = 1;
+		vcanvas_trash.push_back(cm);
 		return cm;
 }
 
