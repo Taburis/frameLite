@@ -9,8 +9,7 @@
 
 class edmJtcSignalProducer {
 		public : edmJtcSignalProducer(){};
-				 virtual ~edmJtcSignalProducer(){
-						 if(func_seagull!=nullptr) delete func_seagull;
+				 virtual ~edmJtcSignalProducer(){ if(func_seagull!=nullptr) delete func_seagull;
 						 if(hsideband!=nullptr) delete hsideband;
 						 if(hsideband0!=nullptr) delete hsideband0;
 						 //if( ndrbin != 0) delete drbins;
@@ -19,6 +18,7 @@ class edmJtcSignalProducer {
 						 raw_sig = h1; mix = h2;
 						 name = h1->GetName();
 				 }
+				 TH2D* bkgSub(TH2D* sig, TString);
 				 TH2D* getSignal(TString);
 				 float getMean(TH1* h, float x1, float x2){
 						 int n1 = h->GetXaxis()->FindBin(x1);
@@ -33,6 +33,7 @@ class edmJtcSignalProducer {
 				 }
 				 void correction_TF1(TH2D*, TF1*);
 				 void check_seagull();
+				 void getBkgError();
 
 				 TString name;
 				 void write();
@@ -46,6 +47,7 @@ class edmJtcSignalProducer {
 				 TH2D* mix_norm = 0;	 
 				 TH1D* dr_shape = 0;
 				 TH1D* dr_shape_step2 = 0; // dr integral over sig_step2
+				 TH1D* dr_shape_step3 = 0; // dr integral over sig_step2
 				 TH1D* dr0 = 0; // dr integral over raw_sig
 				 // for seagull fitting
 				 TF1 * func_seagull = nullptr;
@@ -59,6 +61,8 @@ class edmJtcSignalProducer {
 				 bool doSeagullCorr = 0;
 				 bool dodrIntegral=1;
 				 float xinter = 0.28; // the interval that mixing table is flat in deta by construction.
+				 // the quantity related to systematic error
+				 float me_err, bg_err;
 };
 
 TH2D* edmJtcSignalProducer::getSignal(TString name){
@@ -94,17 +98,29 @@ TH2D* edmJtcSignalProducer::getSignal(TString name){
 		return sig;
 }
 
+TH2D* edmJtcSignalProducer::bkgSub(TH2D* hsig, TString name){
+		sig = (TH2D*) hsig->Clone(name);
+//		std::cout<<hsig1->GetName()<<std::endl;
+		bkg = (TH2D*) jtc_utility::getV2Bkg(hsig, sideMin , sideMax );
+		bkg->SetName("bkg_"+name);
+		sig->Add(sig, bkg, 1, -1);
+		return sig;
+}
+
 void edmJtcSignalProducer::produce(){
 		TString info1 = "pull signal from input: '"+name+"'";
 		TString info2;
 		if(	mix ==0 ) info2 = " withOUT mix...";
 		else info2 = " with mix: '"+TString(mix->GetName())+"'";
 		std::cout<<info1+info2<<std::endl;
-		getSignal(name);	
+		if( mix !=0 && raw_sig !=0 && sig == 0) getSignal(name);
+		else if( sig_step3 != 0 ) sig = bkgSub(sig_step3, "signal_"+name);
+		else if (sig_step2 !=0 ) sig = bkgSub(sig_step2, "signal_"+name);
 		if(dodrIntegral){
-				dr0 = jtc_utility::doDrIntegral("raw_"+name, raw_sig, ndrbin, drbins);
-				dr_shape_step2 = jtc_utility::doDrIntegral("mix_corrected_"+name, sig_step2, ndrbin, drbins);
-				dr_shape = jtc_utility::doDrIntegral("signal_"+name, sig, ndrbin, drbins);
+				if(raw_sig !=0 ) dr0 = jtc_utility::doDrIntegral("raw_"+name, raw_sig, ndrbin, drbins);
+				if(sig_step3 !=0 ) dr_shape_step3 = jtc_utility::doDrIntegral("mix_seagull_corrected_"+name, sig_step3, ndrbin, drbins);
+				else if(sig_step2 !=0 ) dr_shape_step2 = jtc_utility::doDrIntegral("mix_corrected_"+name, sig_step2, ndrbin, drbins);
+				if(sig !=0 ) dr_shape = jtc_utility::doDrIntegral("signal_"+name, sig, ndrbin, drbins);
 		}
 }
 
@@ -115,6 +131,7 @@ void edmJtcSignalProducer::write(){
 		if(mix_norm!=0) mix_norm->Write();
 		if(dr0 !=0) dr0->Write();
 		if(dr_shape !=0) dr_shape->Write();
+		if(dr_shape_step3 !=0) dr_shape_step3->Write();
 		if(dr_shape_step2 !=0) dr_shape_step2->Write();
 }
 
@@ -140,7 +157,8 @@ void edmJtcSignalProducer::fixSeagull(TH2D* hsig, int ntry){
 		hsideband->Scale(1.0/(n2-n1+1));
 		hsideband->Rebin(8); hsideband->Scale(1.0/8);
 		float mean = getMean(hsideband, -xinter, xinter);
-		hsideband->SetAxisRange(-3, 3, "X");
+		hsideband->SetAxisRange(-3, 2.99, "X");
+		//hsideband->SetAxisRange(-2.5, 2.5, "X");
 		hsideband0= (TH1D*) hsideband->Clone("side_band0_"+name);
 		hsideband->Draw();
 		std::cout<<"fitting function: "<<func_seagull->GetName()<<std::endl;
@@ -152,7 +170,8 @@ void edmJtcSignalProducer::fixSeagull(TH2D* hsig, int ntry){
 		//func_seagull->SetParameters(2, fabs(xx-mean));
 //		func_seagull->SetParameters(3, .000000146366);
 		std::cout<<func_seagull<<std::endl;
-		auto ptr = hsideband0->Fit(func_seagull, "S", "", -3., 2.99);
+		auto ptr = hsideband0->Fit(func_seagull, "S", "", -3, 2.99);
+//auto ptr = hsideband0->Fit(func_seagull, "S", "", -2.5, 2.499);
 		TLine line; line.SetLineStyle(2); line.DrawLine(-3, mean, 3, mean);
 		auto code =ptr->Status();
 		//std::cout<<code<<std::endl;
@@ -189,4 +208,22 @@ void edmJtcSignalProducer::check_seagull(){
 		delete h2;
 }
 
+void edmJtcSignalProducer::getBkgError(){
+		TH1D* h1;
+	   	if(doSeagullCorr) h1= (TH1D*) jtc_utility::projX(1, sig_step2, -1, 1, "e"); 
+		else h1= (TH1D*) jtc_utility::projX(1, sig_step3, -1, 1, "e"); 
+		int l1p5 = h1->FindBin(-1.4999)-1;
+        int l2   = h1->FindBin(-2.0001);
+        int r2   = h1->FindBin( 2.0);
+        int r1p5 = h1->FindBin( 1.5);
+
+        float mean = 0;
+        float left_ave, right_ave, in_ave, out_ave;
+        left_ave  = (h1->GetBinContent(l1p5)+h1->GetBinContent(l2))/2;
+        right_ave = (h1->GetBinContent(r1p5)+h1->GetBinContent(r2))/2;
+        in_ave = (h1->GetBinContent(l1p5)+h1->GetBinContent(r1p5))/2;
+        out_ave= (h1->GetBinContent(l2)+h1->GetBinContent(r2))/2;
+        me_err = max(fabs(left_ave-mean), fabs(right_ave-mean));
+        bg_err = max(fabs(in_ave-mean), fabs(out_ave-mean));
+}
 #endif

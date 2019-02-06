@@ -1,6 +1,7 @@
 
 #ifndef jtc_utility
 #define jtc_utility
+#include <iostream>
 #include "TH2.h"
 #include "TH2D.h"
 #include "TH1D.h"
@@ -137,6 +138,10 @@ namespace jtc_utility {
 				}
 				delete temp;
 				return ME;
+		}
+		TH2D* testf(){
+				std::cout<<"bkg"<<std::endl;
+				return 0;
 		}
 		TH2D* getV2Bkg(TH2D* signal, float sideMin,float sideMax){
 				TString stemp = signal->GetName();
@@ -300,6 +305,20 @@ namespace jtc_utility {
 						delete hh;
 				}
 				return h;
+		}
+
+		void ring_corr( TH2D* h, TH1D* corr, float drmax = 1){
+				for(int k=1; k<h->GetNbinsX()+1; ++k){
+						for(int l=1; l<h->GetNbinsY()+1; ++l){
+								float deta = h->GetXaxis()->GetBinCenter(k);
+								float dphi = h->GetYaxis()->GetBinCenter(l);
+								float dr = pow(deta*deta+dphi*dphi, 0.5);
+								if(dr > drmax) continue;
+								int nn = corr->GetXaxis()->FindBin(dr);
+								h->SetBinContent(k,l, h->GetBinContent(k,l)/corr->GetBinContent(nn));
+						}
+				}
+				return ;
 		}
 }
 

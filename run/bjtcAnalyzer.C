@@ -14,14 +14,18 @@ int main(){
 		/*
 		bjtcAnalyzer_Step2 step2(ps_all);
 		//step2.inclCalo_Wf001();
-		step2.evaluate();
-		step2.dijetMCwf101();
-		step2.bjetMCwf101();
+		//step2.dijetMCwf101();
+		//step2.bjetMCwf101();
 		step2.Datawf101();
+		step2.evaluate();
 		*/
 		bjtcAnalyzer_Step3 step3(ps_all);
-		step3.recoJetCheck();
-		step3.recoTrackCheck();
+//		step3.fordijet_recoTrackCheck();
+//		step3.get_dijtc_correction();
+//		step3.apply_dijtc_correction();
+//		step3.get_bjtc_correction();
+		step3.produce_bjtc();
+		step3.overlay_injtc_vs_bjtc();
 		std::cout<<"Done"<<std::endl;
 		return 0;
 }

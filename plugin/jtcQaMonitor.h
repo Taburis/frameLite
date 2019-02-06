@@ -18,10 +18,10 @@ class jtcQaMonitor{
 				 };
 				 ~jtcQaMonitor(){
 						 for(auto &it : vm2trash) delete it;
-						 for(auto &it : vcanvas_trash){
-								 it->Close();
+//						 for(auto &it : vcanvas_trash){
+								 //it->Close();
 //								 delete it;
-						 }
+//						 }
 				 }
 				 multi_canvas<TH1>* overlay(TString savename = "", bool drawShape = 0);
 				 multi_canvas<TH1>* overlayR(TString savename = "Ra", TString opt = "");
@@ -147,6 +147,7 @@ multi_canvas<TH1>* jtcQaMonitor::overlay(TString savename, bool drawShape){
 		auto m2th = vm2th1[0];
 		float min[npt*ncent];
 		float max[npt*ncent];
+//		std::cout<<"plot here"<<std::endl;
 		if(autoYrange){
 				for(int i =0; i<npt ; ++i){
 						for(int j=0; j<ncent; ++j){
@@ -171,6 +172,7 @@ multi_canvas<TH1>* jtcQaMonitor::overlay(TString savename, bool drawShape){
 				std::cout<<"ERROR: please specify the pad_title function first!"<<std::endl;
 				return nullptr;
 		}
+//		std::cout<<"plot here"<<std::endl;
 		for(int k=0; k<vm2th1.size(); ++k){
 				m2th = vm2th1[k];
 				for(int i=0; i<npt ; ++i){
@@ -203,8 +205,9 @@ multi_canvas<TH1>* jtcQaMonitor::overlay(TString savename, bool drawShape){
 						}
 				}
 		}
-		vcanvas_trash.push_back(cm);
+		//vcanvas_trash.push_back(cm);
 		if(doSave) cm->SaveAs(savename);
+//		std::cout<<"plot here"<<std::endl;
 		return cm;
 }
 
@@ -326,9 +329,9 @@ multi_canvas<TH1>* jtcQaMonitor::overlayR(TString savename, TString opt){
 								if(pad_map != nullptr){ padcd(index.i1, index.i2, 1)->cd();
 								} else padcd(i, j ,1)->cd();
 								lower_pad_cfg(m2rat->at(i,j));
-								if(fixRatioRange) m2rat->at(i,j)->SetAxisRange(yR1, yR2, "Y");
 								if(fixXrange) m2rat->at(i,j)->SetAxisRange(x1, x2,"X");
 								m2rat->at(i,j)->GetXaxis()->SetTitle(m2th1->at(i,j)->GetXaxis()->GetTitle());
+								if(fixRatioRange) m2rat->at(i,j)->SetAxisRange(yR1, yR2, "Y");
 								m2rat->at(i,j)->Draw();
 								if(ratioLine){
 										if(!fixXrange){

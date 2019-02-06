@@ -21,10 +21,12 @@ ParaSet makePSet_edmJtcDefault(){
 		ParaSet st("edmJtcAnalzyer_pset");
 		double jetptbin[] = {110, 120, 136, 152, 168, 184, 200, 216, 232, 248, 264, 280, 296, 312, 328, 344, 360, 380, 400, 432, 500};
 		//		cout<<"size is "<<sizeof(jetptbin)/sizeof(jetptbin[0])<<endl;
+		float drbin[] = {0.,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.6,0.7,0.8,1.};
+		st.setPara<int>("ndr", 14);
 		//float drbin[] = {0.,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.6,0.7,0.8,1.};
 		//st.setPara<int>("ndr", 14);
-		float drbin[] = {0.,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.45,0.6,0.8,1. };
-		st.setPara<int>("ndr", 11);
+		//float drbin[] = {0.,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.45,0.6,0.8,1., 1.1, 1.2, 1.3, 1.5};
+		//st.setPara<int>("ndr", 15);
 		st.setParaVector<float>("drbins", sizeof(drbin)/sizeof(drbin[0]), drbin);
 		st.setParaVector<double>("jet_pt_bin", sizeof(jetptbin)/sizeof(jetptbin[0]), jetptbin);
 		st.setPara<int>("npt", 6);
@@ -33,20 +35,21 @@ ParaSet makePSet_edmJtcDefault(){
 }
 
 ParaSet makePSet_bjtc_pp_step23(){
-		TString inputfolder = "/Users/tabris/cmsProjects/iJTC/dataSet/bJTC/pp_18Dec18/";
-		TString fbjetMC_rg = "bJTC_PYTHIA6_RecGen_5TeV_bjetMC_wtaAxis_7Jan19.root";
-		TString fbjetMC_gg = "bJTC_PYTHIA6_GenGen_5TeV_bjetMC_wtaAxis_7Jan19.root";
-		TString fbjetMC_rr = "bJTC_PYTHIA6_RecRec_5TeV_bjetMC_wtaAxis_7Jan19.root";
-		TString fdijetMC_rg = "bJTC_PYTHIA6_RecGen_5TeV_dijetMC_wtaAxis_11Jan19.root";
-		TString fdijetMC_gg = "bJTC_PYTHIA6_GenGen_5TeV_dijetMC_wtaAxis_11Jan19.root";
-		TString fdijetMC_rr = "bJTC_PYTHIA6_RecRec_5TeV_dijetMC_wtaAxis_11Jan19.root";
-		TString fdata = "bJTC_pp_data_5TeV_wtaAxis_7Jan19.root";
+		TString inputfolder = "/Users/tabris/cmsProjects/iJTC/dataSet/bJTC/pp_28Jan19/";
+		TString fbjetMC_rg = "bJTC_PYTHIA6_RecGen_5TeV_bjetMC_GSPweighted_WTAaxis_csvV2p9_28Jan19.root";
+		TString fbjetMC_gg = "bJTC_PYTHIA6_GenGen_5TeV_bjetMC_GSPweighted_WTAaxis_csvV2p9_28Jan19.root";
+		TString fbjetMC_rr = "bJTC_PYTHIA6_RecRec_5TeV_bjetMC_GSPweighted_WTAaxis_csvV2p9_28Jan19.root";
+		TString fdijetMC_rg = "bJTC_PYTHIA6_RecGen_5TeV_dijetMC_WTAaxis_csvV2p9_28Jan19.root";
+		TString fdijetMC_gg = "bJTC_PYTHIA6_GenGen_5TeV_dijetMC_WTAaxis_csvV2p9_28Jan19.root";
+		TString fdijetMC_rr = "bJTC_PYTHIA6_RecRec_5TeV_dijetMC_WTAaxis_csvV2p9_28Jan19.root";
+		TString fdata = "bJTC_pp_data_5TeV_wtaAxis_28Jan19.root";
 		ParaSet st("bjtc_pp_allstep_pset");
 
 		st.setPara<TString>("testQA", "/Users/tabris/frameLite/output/testQA/");
 
 		//st.setPara<TString>("step2output_folder", "/Users/tabris/frameLite/output/step2_noSeagull/");
 		st.setPara<TString>("step2output_folder", "/Users/tabris/frameLite/output/step2/");
+		st.setPara<TString>("step3output_folder", "/Users/tabris/frameLite/output/step3/");
 		st.setPara<TString>("bjetMC_step2output_name", "Signal_PYTHIA6_bjetSample_allJets");
 		st.setPara<TString>("bjetMC_step2input_rg_file", inputfolder+fbjetMC_rg);
 		st.setPara<TString>("bjetMC_step2input_gg_file", inputfolder+fbjetMC_gg);
@@ -85,7 +88,9 @@ ParaSet init(){
 		gAnaIO.output_plot_path = g_cfg->getPara<TString>("testQA");
 		gQA->ncol = g_cfg->getPara<int>("pad_ncol");
 		gQA->nrow = g_cfg->getPara<int>("pad_nrow");
+		gQA->pad_map = g_cfg->getPara<mapper_func>("pad_map");
 		gQA->pad_title = g_cfg->getPara<TString (*)(int,int)>("pad_title");
+		gQA->makeTitle = 1;
 		return _psall_;
 }
 

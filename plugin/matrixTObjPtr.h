@@ -59,13 +59,13 @@ class matrixTObjPtr : public matrixPtrHolder<T>{
 						name = _name;
 				};
 				virtual ~matrixTObjPtr(){
-						if(doFree){
-								std::cout<<"deleting "<<matrixPtrHolder<T>::ref.size()<<" objects in "<<name<<std::endl;
-							   	for(auto & it : matrixPtrHolder<T>::ref){
-										std::cout<<"deleting "<<it->GetName()<<std::endl;
-									   	delete it;
-								}
-						}
+					//	if(doFree){
+					//			std::cout<<"deleting "<<matrixPtrHolder<T>::ref.size()<<" objects in "<<name<<std::endl;
+					//		   	for(auto & it : matrixPtrHolder<T>::ref){
+					//					std::cout<<"deleting "<<it->GetName()<<std::endl;
+					//				   	delete it;
+					//			}
+					//	}
 						doFree = 0;
 				};
 				matrixTObjPtr * deep_clone(const char * name_){
@@ -91,7 +91,7 @@ class matrixTObjPtr : public matrixPtrHolder<T>{
 						newm2->autoLoad(file);
 						return newm2;
 				}
-				//				 void write(){ for(auto & it:ref) it->Write();}
+				void write(){ for(auto & it:matrixPtrHolder<T>::ref) it->Write();}
 
 				std::string name;
 				bool doFree = 0;
@@ -99,6 +99,7 @@ class matrixTObjPtr : public matrixPtrHolder<T>{
 
 class matrixTH1Ptr : public matrixTObjPtr<TH1>{
 		public : matrixTH1Ptr(): matrixTObjPtr<TH1>(){};
+				 virtual ~matrixTH1Ptr(){ };
 				 matrixTH1Ptr(const char * _name, int n, int m): matrixTObjPtr<TH1>(_name, n,m) {}
 				 matrixTH1Ptr(matrixTH1Ptr& m2): matrixTObjPtr<TH1>(TString("cl_"+m2.name), m2.Nrow(), m2.Ncol()) {}
 				 void setName(const char* _name) {
@@ -107,6 +108,13 @@ class matrixTH1Ptr : public matrixTObjPtr<TH1>{
 								 for(int i=0; i<matrixTObjPtr<TH1>::nrow; i++){
 										 auto hn = name+"_"+i+"_"+j;
 										 at(i,j)->SetName(hn);
+								 }
+						 }
+				 }
+				 void scale(float s) {
+						 for(int j=0; j<matrixTObjPtr<TH1>::ncol; ++j){
+								 for(int i=0; i<matrixTObjPtr<TH1>::nrow; i++){
+										 at(i,j)->Scale(s);
 								 }
 						 }
 				 }
@@ -131,7 +139,17 @@ class matrixTH1Ptr : public matrixTObjPtr<TH1>{
 										 m2->at(i,j)->Add(rhs(i,j));
 								 }
 						 }
-						 m2->doFree = 1;
+						 return m2;
+				 }
+				 matrixTH1Ptr * operator-( matrixTH1Ptr & rhs){
+						 //check if the matrix shapes are the same
+						 if( matrixTObjPtr<TH1>::ncol != rhs.ncol || matrixTObjPtr<TH1>::nrow != rhs.nrow) return 0;
+						 auto m2 = clone((std::string("sum_")+name).c_str());
+						 for(int j=0; j<matrixTObjPtr<TH1>::ncol; ++j){
+								 for(int i=0; i<matrixTObjPtr<TH1>::nrow; i++){
+										 m2->at(i,j)->Add(m2->at(i,j), rhs(i,j), 1, -1);
+								 }
+						 }
 						 return m2;
 				 }
 				 matrixTH1Ptr * operator/( matrixTH1Ptr & rhs){
@@ -142,7 +160,6 @@ class matrixTH1Ptr : public matrixTObjPtr<TH1>{
 										 m2->at(i,j)->Divide(rhs(i,j));
 								 }
 						 }
-						 m2->doFree = 1;
 						 return m2;
 				 }
 
@@ -154,7 +171,6 @@ class matrixTH1Ptr : public matrixTObjPtr<TH1>{
 										 m2->at(i,j)->Divide(m2->at(i,j), rhs(i,j), 1, 1, "B");
 								 }
 						 }
-						 m2->doFree = 1;
 						 return m2;
 				 }
 				 void normalized_by_area(float x = 1, float y = -1){
@@ -172,7 +188,6 @@ class matrixTH1Ptr : public matrixTObjPtr<TH1>{
 						 }
 						 return;
 				 }
-
 };
 
 template<typename T> 

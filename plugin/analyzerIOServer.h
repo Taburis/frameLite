@@ -17,6 +17,7 @@ class AnalyzerIOServer {
 				 void setGCfg(ParaSet &ps){ cfg = &ps; g_cfg = &ps;}
 				 void saveCanvas(TCanvas *c, TString name){
 						 c->SaveAs(output_plot_path+name+plotFormat);
+						 std::cout<<"saved.."<<std::endl;
 						 qam.flash();
 						 delete c;
 				 }
@@ -32,7 +33,7 @@ class AnalyzerIOServer {
 				 TString output_plot_path = "./";
 				 TString output_root_path = "./";
 				 TString input_root_path  = "./";
-				 TString plotFormat=".eps";
+				 TString plotFormat=".pdf";
 				 jtcQaMonitor qam;
 };
 
