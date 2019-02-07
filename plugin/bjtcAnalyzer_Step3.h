@@ -7,6 +7,8 @@ class bjtcAnalyzer_Step3 : public rootEDMAnalyzer {
 						 ps = &pset;
 						 loadStep2OutputFiles();
 						 gAnaIO.output_plot_path = ps->getPara<TString>("step3output_folder");
+						 ndrbin = ps->getPara<int>("ndr");
+						 drbins = ps->getVectorAsArray<float>("drbins");
 				 }
 				 void loadStep2OutputFiles();
 				 matrixTH1Ptr* getPhiProjection(matrixTH1Ptr &m, float x, float y, TString opt = "e"){
@@ -31,12 +33,15 @@ class bjtcAnalyzer_Step3 : public rootEDMAnalyzer {
 				 int analyze(){return 0;}
 				 void apply_dijtc_correction();
 				 void check_dijtc_WTAvsEsch_result();
+				 void check_WTAvsEsch_result();
 				 void produce_bjtc();
 				 void get_bjtc_correction();
 				 void overlay_injtc_vs_bjtc();
 				 void bjtc_validation();
 		public: 
 				 int npt= 6, ncent=1;
+				 int ndrbin;
+				 float *drbins;
 				 ParaSet *ps;
 				 TString inputPath;
 				 TFile *fbMC_gg, *fbMC_rg, *fbMC_rr, *fdMC_gg, *fdMC_rg, *fdMC_rr, *fcorr, *fdata;
@@ -367,12 +372,38 @@ void bjtcAnalyzer_Step3::get_bjtc_correction(){
 		gQA->addLegendPair("t&t b-jet(reco trk)", "t&t b-jet(gen trk)", 0);
 		gAnaIO.saveCanvas(gQA->overlayR(), "bjtc_JS_pp_trkCorr");
 
+		matrixTH1Ptr* m2y_co_rr = new matrixTH1Ptr("dr_raw_contJet_RecoJet_RecoTrack_noCorr", npt, ncent);
+		matrixTH1Ptr* m2j_co_rr = new matrixTH1Ptr("dr_raw_contJet_RecoJet_RecoTrack_pTweighted_noCorr", npt, ncent);
+		matrixTH1Ptr* m2y_in_rr = new matrixTH1Ptr("dr_raw_inclJet_RecoJet_RecoTrack_noCorr", npt, ncent);
+		matrixTH1Ptr* m2j_in_rr = new matrixTH1Ptr("dr_raw_inclJet_RecoJet_RecoTrack_pTweighted_noCorr", npt, ncent);
+		m2y_co_rr->autoLoad(fdMC_rr);
+		m2j_co_rr->autoLoad(fdMC_rr);
+		m2y_in_rr->autoLoad(fdMC_rr);
+		m2j_in_rr->autoLoad(fdMC_rr);
+		auto contCorrJ = (*m2j_co_rr)/(*m2j_in_rr);
+		auto contCorrY = (*m2y_co_rr)/(*m2y_in_rr);
+		contCorrJ->smooth();
+		contCorrY->smooth();
+		gQA->addm2TH1Pair(m2j_co_rr, m2j_in_rr);
+		gQA->bookLegend(.5, .6, .9, .8);
+		gQA->addLegendPair("cont. jet", "incl. jet", 0);
+		gAnaIO.saveCanvas(gQA->overlayR(), "bjtc_JS_pp_contamination");
+		gQA->bookLegend(.5, .6, .9, .8);
+		gQA->setYrange(0.8, 1.2);
+		gQA->addm2TH1(contCorrJ);
+		gQA->addm2TH1(contCorrY);
+		gQA->addLegendEntry("JS", 0);
+		gQA->addLegendEntry("yield", 1);
+		gAnaIO.saveCanvas(gQA->overlay(), "bjtc_JS_pp_contCorr");
+
 		TString folder = ps->getPara<TString>("step3output_folder");
 		auto wf = TFile::Open(folder+"bjtc_correction.root", "recreate");
 		m2j_jff->write();
 		m2y_jff->write();
 		m2j_trk->write();
 		m2y_trk->write();
+		contCorrJ->write();
+		contCorrY->write();
 		wf->Close();
 }
 
@@ -394,7 +425,7 @@ void bjtcAnalyzer_Step3::testRun(){
 }
 
 void bjtcAnalyzer_Step3::produce_bjtc(){
-		float purity = 0.66;
+		float purity = 0.7;
 		TString folder = ps->getPara<TString>("step3output_folder");
 
 		matrixTH1Ptr* m2j_in_data = new matrixTH1Ptr("sig_mix_seagull_corrected_inclJet_Data_pTweighted_noCorr", npt, ncent);
@@ -483,17 +514,66 @@ void bjtcAnalyzer_Step3::overlay_injtc_vs_bjtc(){
 		f->Close();
 		fb->Close();
 }
-/*
+
 void bjtcAnalyzer_Step3::bjtc_validation(){
 		float purity = 0.66;
-		matrixTH1Ptr* m2j_tg_rr = new matrixTH1Ptr("sig_mix_seagull_corrected_taggedBJet_RecoJet_RecoTrack_pTweighted_noCorr", npt, ncent);
-		matrixTH1Ptr* m2j_tt_rr = new matrixTH1Ptr("sig_mix_seagull_corrected_taggedTrueJet_RecoJet_RecoTrack_pTweighted_noCorr", npt, ncent);
-		matrixTH1Ptr* m2j_in_rr = new matrixTH1Ptr("sig_mix_seagull_corrected_inclJet_RecoJet_RecoTrack_pTweighted_noCorr", npt, ncent);
-		m2j_tg_rr->autoLoad(fd);
-		m2j_tt_rr->autoLoad(fd);
-		m2j_in_rr->autoLoad(fd);
+		gQA->setXrange(0, 0.99);
+		gQA->addRLine(1);
+		gQA->setTitlePosition(0.625,0.85);
+		matrixTH1Ptr* m2j_tg_rr = new matrixTH1Ptr("sig_mix_seagull_corrected_taggedBJet_RecoJet_GenTrack_pTweighted_noCorr", npt, ncent);
+		matrixTH1Ptr* m2j_tt_rr = new matrixTH1Ptr("sig_mix_seagull_corrected_taggedTrueBJet_RecoJet_GenTrack_pTweighted_noCorr", npt, ncent);
+		matrixTH1Ptr* m2j_in_rr = new matrixTH1Ptr("sig_mix_seagull_corrected_inclJet_RecoJet_GenTrack_pTweighted_noCorr", npt, ncent);
+		//matrixTH1Ptr* m2j_tg_rr = new matrixTH1Ptr("sig_mix_seagull_corrected_taggedBJet_RecoJet_RecoTrack_pTweighted_noCorr", npt, ncent);
+		//matrixTH1Ptr* m2j_tt_rr = new matrixTH1Ptr("sig_mix_seagull_corrected_taggedTrueBJet_RecoJet_RecoTrack_pTweighted_noCorr", npt, ncent);
+		//matrixTH1Ptr* m2j_in_rr = new matrixTH1Ptr("sig_mix_seagull_corrected_inclJet_RecoJet_RecoTrack_pTweighted_noCorr", npt, ncent);
+		m2j_tg_rr->autoLoad(fdMC_rg);
+		m2j_tt_rr->autoLoad(fdMC_rg);
+		m2j_in_rr->autoLoad(fdMC_rg);
+
 		m2j_in_rr->scale(1-purity);
-		auto m2j_tt_rr = (*m2j_tg_rr)-(*m2j_in_rr);
-		m2j_tt_data->scale(1.0/purity);
+		auto m2j_pu_rr = (*m2j_tg_rr)-(*m2j_in_rr);
+		m2j_pu_rr->scale(1.0/purity);
+		auto m2j_pu_rr_dr = jtc_utility::getDr("purified_rr", m2j_pu_rr, ndrbin,  drbins);
+		auto m2j_tg_rr_dr = jtc_utility::getDr("tg_rr", m2j_tg_rr, ndrbin,  drbins);
+		auto m2j_tt_rr_dr = jtc_utility::getDr("tt_rr", m2j_tt_rr, ndrbin,  drbins);
+		gQA->addm2TH1Pair(m2j_tg_rr_dr, m2j_tt_rr_dr);
+//		gQA->addm2TH1Pair(m2j_tg_rr, m2j_tt_rr);
+		gQA->bookLegend(.5, .6, .9, .8);
+		gQA->addLegendPair( "tagged b-jet", "t&t b-jet", 0);
+		gQA->setLowerYrange(0.8 , 1.2);
+		gAnaIO.saveCanvas(gQA->overlayR(), "validation_before_purification");
+		gQA->addm2TH1Pair(m2j_pu_rr_dr, m2j_tt_rr_dr);
+//		gQA->addm2TH1Pair(m2j_pu_rr, m2j_tt_rr);
+		gQA->bookLegend(.5, .6, .9, .8);
+		gQA->addLegendPair( "purified b-jet", "t&t b-jet", 0);
+		gAnaIO.saveCanvas(gQA->overlayR(), "validation_purification");
 }
-*/
+
+void bjtcAnalyzer_Step3::check_WTAvsEsch_result(){
+		TString folder = ps->getPara<TString>("step3output_folder");
+		auto fwta_in = TFile::Open(folder+"inclJet_data_final.root");
+		auto fesm_in = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/bJTC/myCorrelation/trunk/v3/incl_pp_referenceForbJTC2.root");
+		auto fwta_b = TFile::Open(folder+"bjtc_data_final.root");
+		auto fesm_b = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/bJTC/myCorrelation/trunk/v3/pp_data_csv_v2_purity66_v3sequence.root");
+		matrixTH1Ptr* m2j_esm_in_data = new matrixTH1Ptr("inclJTC_pp_Data_pTweighted", npt, ncent);
+		matrixTH1Ptr* m2j_esm_b_data = new matrixTH1Ptr("dr_pt_final_data", npt, ncent);
+		matrixTH1Ptr* m2j_wta_in_data = new matrixTH1Ptr("dr_signal_dijtc_jetShape_step2", npt, ncent);
+		matrixTH1Ptr* m2j_wta_b_data = new matrixTH1Ptr("dr_signal_bjtc_jetShape_step2", npt, ncent);
+		m2j_wta_in_data->autoLoad(fwta_in);
+		m2j_wta_b_data->autoLoad(fwta_b);
+		m2j_esm_in_data->autoLoad(fesm_in);
+		m2j_esm_b_data->autoLoad(fesm_b);
+		auto m2j_esm_in_data_rebin = m2j_esm_in_data->rebin("rebined_esm_in", ndrbin, drbins);
+
+		auto ratio_esm = (*m2j_esm_b_data)/(*m2j_esm_in_data);
+		auto ratio_wta = (*m2j_wta_b_data)/(*m2j_wta_in_data);
+		gQA->addm2TH1(ratio_esm);
+		gQA->addm2TH1(ratio_wta);
+		gQA->makeTitle = 1;
+		gQA->setXrange(0, 0.99);
+		gQA->bookLegend(.5, .6, .9, .8);
+		gQA->addRLine(1);
+		gQA->addLegendEntry("EScheme", 0);
+		gQA->addLegendEntry("WTA", 0);
+		gAnaIO.saveCanvas(gQA->overlay(), "bjtc_wta_vs_esm");
+}

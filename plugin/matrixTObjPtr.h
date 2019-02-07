@@ -96,7 +96,7 @@ class matrixTObjPtr : public matrixPtrHolder<T>{
 				std::string name;
 				bool doFree = 0;
 };
-
+/*
 class matrixTH1Ptr : public matrixTObjPtr<TH1>{
 		public : matrixTH1Ptr(): matrixTObjPtr<TH1>(){};
 				 virtual ~matrixTH1Ptr(){ };
@@ -188,7 +188,7 @@ class matrixTH1Ptr : public matrixTObjPtr<TH1>{
 						 }
 						 return;
 				 }
-};
+};*/
 
 template<typename T> 
 class multi_canvas : public TCanvas{

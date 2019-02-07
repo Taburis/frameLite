@@ -4,7 +4,8 @@
 #include "analyzerIOServer.h"
 #include "rootEDM.h"
 #include "edmJtcSignalProducer.h"
-#include "matrixTObjPtr.h"
+#include "matrixTH1Ptr.h"
+//#include "matrixTObjPtr.h"
 #include "TString.h"
 #include "jtcQaMonitor.h"
 
@@ -146,7 +147,7 @@ int edmJtcAnalyzer::analyze(){
 						m2producer(i,j)->produce();
 				}
 		}
-		if(doSeagullCorr) gAnaIO.saveCanvas((TCanvas*)mm, dataset_name+sig_name+"_check_sg");
+		if(doSeagullCorr) gAnaIO.saveCanvas((TCanvas*)mm, dataset_name+sig_name+"_s1_check_sg");
 		if(doQA){
 				signal_deta_qa();
 		}
@@ -210,12 +211,12 @@ void edmJtcAnalyzer::signal_deta_qa(){
 		gQA->addm2TH1(&m2sig_deta);
 		gQA->x1=-3; gQA->x2 = 2.99;
 		gQA->doSave=0;
-		gAnaIO.saveCanvas(gQA->overlay(dataset_name+sig_name+"qa_Signal_deta_"+label), dataset_name+sig_name+"_QASignal_deta_"+label);
+		gAnaIO.saveCanvas(gQA->overlay(dataset_name+sig_name+"qa_Signal_deta_"+label), dataset_name+sig_name+"_s3_QASignal_deta_"+label);
 		gQA->autoYrange = 0;
 		gQA->flash();
 		gQA->addm2TH1(&m2sig_side_deta);
 		gQA->addm2TH1(&m2sig_deta);
-		gAnaIO.saveCanvas(gQA->overlay(dataset_name+sig_name+"qa_seagull_"+label), dataset_name+sig_name+"_QASeagull_deta_"+label);
+		gAnaIO.saveCanvas(gQA->overlay(dataset_name+sig_name+"qa_seagull_"+label), dataset_name+sig_name+"_s2_QASeagull_deta_"+label);
 		m2sig_deta.cleanAll();
 		m2sig_side_deta.cleanAll();
 		gQA->flash();

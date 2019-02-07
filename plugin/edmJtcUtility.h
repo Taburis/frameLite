@@ -7,6 +7,8 @@
 #include "TH1D.h"
 #include "TString.h"
 #include "TString.h"
+//#include "matrixTObjPtr.h"
+#include "matrixTH1Ptr.h"
 
 
 namespace jtc_utility {
@@ -319,6 +321,18 @@ namespace jtc_utility {
 						}
 				}
 				return ;
+		}
+
+		matrixTH1Ptr * getDr(const char * name, matrixTH1Ptr * m2h, int ndr, float * drbin){
+				auto m2 = new matrixTH1Ptr(name, int(m2h->Nrow()), int(m2h->Ncol()));
+				for(int i=0; i<m2h->Nrow(); i++){
+						for(int j=0; j<m2h->Ncol(); j++){
+								auto h = doDrIntegral(TString(Form("%s_%d_%d", name, i,j)), (TH2D*)m2h->at(i,j),ndr, drbin );
+								m2->add(h, i,j );
+						}
+				}
+				m2->doFree = 1;
+				return m2;
 		}
 }
 

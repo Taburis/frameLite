@@ -25,7 +25,7 @@ class edmJtcSignalProducer {
 						 int n2 = h->GetXaxis()->FindBin(x2);
 						 return h->Integral(n1, n2)/fabs(n2-n1+1);
 				 }
-				 void fixSeagull(TH2D* hsig, int ntry = 0);
+				 double fixSeagull(TH2D* hsig, int ntry = 0);
 				 void setFitFunction(int npar = 4, Double_t (*fcn)(Double_t *, Double_t*) = 0){
 						 if( fcn == 0) fcn = jtc_utility::seagull_pol2_par3;
 						 if( func_seagull !=0 ) func_seagull->Delete();
@@ -60,6 +60,7 @@ class edmJtcSignalProducer {
 				 float* drbins;
 				 bool doSeagullCorr = 0;
 				 bool dodrIntegral=1;
+				 double chi2threshold = 1.3; // the chi2 cut only start to fit when chi2 > this threshold.
 				 float xinter = 0.28; // the interval that mixing table is flat in deta by construction.
 				 // the quantity related to systematic error
 				 float me_err, bg_err;
@@ -125,6 +126,7 @@ void edmJtcSignalProducer::produce(){
 }
 
 void edmJtcSignalProducer::write(){
+		if(raw_sig!=0) raw_sig->Write();
 		if(sig!=0) sig->Write();
 		if(sig_step2 != 0) sig_step2->Write();
 		if(sig_step3 != 0) sig_step3->Write();
@@ -150,7 +152,8 @@ void edmJtcSignalProducer::correction_TF1(TH2D* hsig, TF1* func){
 		return;
 }
 
-void edmJtcSignalProducer::fixSeagull(TH2D* hsig, int ntry){
+double edmJtcSignalProducer::fixSeagull(TH2D* hsig, int ntry){
+		double rvalue = 0;
 		int n1 = hsig->GetYaxis()->FindBin(1.4);
 		int n2 = hsig->GetYaxis()->FindBin(1.8);
 		hsideband = (TH1D*) hsig->ProjectionX("side_band_"+name, n1, n2);
@@ -173,16 +176,26 @@ void edmJtcSignalProducer::fixSeagull(TH2D* hsig, int ntry){
 		auto ptr = hsideband0->Fit(func_seagull, "S", "", -3, 2.99);
 //auto ptr = hsideband0->Fit(func_seagull, "S", "", -2.5, 2.499);
 		TLine line; line.SetLineStyle(2); line.DrawLine(-3, mean, 3, mean);
+		TF1 f0("f0", "pol0", -2.5, 2.5);
+		f0.SetParameter(0, mean);
+		rvalue = hsideband0->Chisquare(&f0);
+		rvalue = rvalue/(hsideband0->GetNbinsX()-1);
+		auto chi2 = ptr->Chi2();
+		chi2 = chi2/ptr->Ndf();
+		TLatex  tx; tx.DrawLatexNDC(0.3, 0.8, Form("Chi2 value: %f", rvalue));
+		tx.DrawLatexNDC(0.3, 0.2, Form("Fitting chi2: %f", chi2));
+		tx.SetTextSize(.12);
+		if(chi2 > rvalue) tx.DrawLatexNDC(0.2, 0.5, "#color[2]{NOT APPLY}");
 		auto code =ptr->Status();
 		//std::cout<<code<<std::endl;
-		if(code == 0){
+		if(code == 0 && rvalue > chi2){
 			   	correction_TF1(hsig, func_seagull);
-				return;}
+				return rvalue;}
 		else if( ntry < 2 ){
 				delete hsideband;
 				delete hsideband0;
 			   	return fixSeagull(hsig, ntry+1); 
-		} else return;
+		} else return rvalue;
 }
 
 void edmJtcSignalProducer::check_seagull(){
@@ -223,7 +236,7 @@ void edmJtcSignalProducer::getBkgError(){
         right_ave = (h1->GetBinContent(r1p5)+h1->GetBinContent(r2))/2;
         in_ave = (h1->GetBinContent(l1p5)+h1->GetBinContent(r1p5))/2;
         out_ave= (h1->GetBinContent(l2)+h1->GetBinContent(r2))/2;
-        me_err = max(fabs(left_ave-mean), fabs(right_ave-mean));
-        bg_err = max(fabs(in_ave-mean), fabs(out_ave-mean));
+        me_err = fmax(fabs(left_ave-mean), fabs(right_ave-mean));
+        bg_err = fmax(fabs(in_ave-mean), fabs(out_ave-mean));
 }
 #endif

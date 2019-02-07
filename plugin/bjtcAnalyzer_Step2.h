@@ -14,7 +14,7 @@ class bjtcAnalyzer_Step2 : public rootEDMAnalyzer {
 				}
 				edmJtcAnalyzer * initAnalyzer(const char * name);
 				// 101 workflow to pull the signal from a standard bjtc correlation files which include: 1. inclusive jet 2. tagged b jet 3. tagged & true bjet 4. true b jet
-				void wf001(const char * dataset_name, const char * input, const char *output_caption, bool isGenJet, bool isGenTrack);
+				void wf001(const char * dataset_name, const char * input, const char *output_caption, bool isGenJet, bool isGenTrack, bool doCont = 0);
 				void datawf001(const char *input, const char *output_caption);
 				void bjetMCwf101();
 				void dijetMCwf101();
@@ -121,7 +121,7 @@ void bjtcAnalyzer_Step2::inclCalo_Wf001(){
 				initAnalyzer("caloJet_");	}
 }
 
-void bjtcAnalyzer_Step2::wf001(const char* dataset_name, const char * input, const char *output_caption, bool isGenJet, bool isGenTrack){
+void bjtcAnalyzer_Step2::wf001(const char* dataset_name, const char * input, const char *output_caption, bool isGenJet, bool isGenTrack, bool doCont){
 		//for inclusive jet
 		infile = input;
 		outputname = output_caption + jtc_utility::histNameScheme("_", isGenJet, isGenTrack)+".root";
@@ -166,6 +166,18 @@ void bjtcAnalyzer_Step2::wf001(const char* dataset_name, const char * input, con
 		sig_name = jtc_utility::histNameScheme("taggedTrueBJet_", isGenJet, isGenTrack, 1);
 		openOpt = "update";
 		initAnalyzer(dataset_name);
+
+		if(doCont){
+				outputname = output_caption+jtc_utility::histNameScheme("_", isGenJet, isGenTrack)+".root";
+				sig_name = jtc_utility::histNameScheme("contJet_", isGenJet, isGenTrack);
+				mix_name = jtc_utility::histNameScheme("contJet_", isGenJet, isGenTrack, 0, 1);
+				norm_name = "contJet_corrpt";
+				openOpt = "update";
+				initAnalyzer(dataset_name);
+				sig_name = jtc_utility::histNameScheme("contJet_", isGenJet, isGenTrack, 1);
+				openOpt = "update";
+				initAnalyzer(dataset_name);
+		}
 }
 
 void bjtcAnalyzer_Step2::testWf001(){
@@ -198,11 +210,11 @@ void bjtcAnalyzer_Step2::dijetMCwf101(){
 		TString output_name = ps->getPara<TString>("dijetMC_step2output_name");
 		TString input_file;
 		input_file = ps->getPara<TString>("dijetMC_step2input_rg_file");
-		wf001("dijetMC_", input_file, output_name, 0, 1);
+		wf001("dijetMC_", input_file, output_name, 0, 1, 1);
 		input_file = ps->getPara<TString>("dijetMC_step2input_gg_file");
-		wf001("dijetMC_", input_file, output_name, 1, 1);
+		wf001("dijetMC_", input_file, output_name, 1, 1, 1);
 		input_file = ps->getPara<TString>("dijetMC_step2input_rr_file");
-		wf001("dijetMC_", input_file, output_name, 0, 0);
+		wf001("dijetMC_", input_file, output_name, 0, 0, 1);
 }
 
 int bjtcAnalyzer_Step2::analyze(){
