@@ -1,5 +1,6 @@
 
 #include "edmJtcAnalyzer.h" 
+#include "jtcTH1Player.h"
 
 class bjtcAnalyzer_Step3 : public rootEDMAnalyzer {
 		public : bjtcAnalyzer_Step3(ParaSet & pset) : rootEDMAnalyzer(){
@@ -409,17 +410,11 @@ void bjtcAnalyzer_Step3::get_bjtc_correction(){
 
 void bjtcAnalyzer_Step3::testRun(){
 		TString folder = ps->getPara<TString>("step3output_folder");
-		matrixTH1Ptr* m2j_in_data = new matrixTH1Ptr("dr_raw_inclJet_Data_pTweighted_noCorr", npt, ncent);
-		matrixTH1Ptr* m2y_in_data = new matrixTH1Ptr("dr_raw_inclJet_Data_noCorr", npt, ncent);
-		matrixTH1Ptr* m2j_tg_data = new matrixTH1Ptr("dr_raw_taggedBJet_Data_pTweighted_noCorr", npt, ncent);
-		matrixTH1Ptr* m2y_tg_data = new matrixTH1Ptr("dr_raw_taggedBJet_Data_noCorr", npt, ncent);
-		m2y_tg_data->autoLoad(fdata);
-		m2j_tg_data->autoLoad(fdata);
-		m2y_in_data->autoLoad(fdata);
+		jtcTH1Player* m2j_in_data = new jtcTH1Player("signal_inclJet_Data_pTweighted_noCorr", npt, ncent);
 		m2j_in_data->autoLoad(fdata);
-		gQA->addm2TH1(m2y_tg_data);
-		gQA->addm2TH1(m2y_in_data);
-		gQA->setXrange(0, 0.99);
+		auto m2p = m2j_in_data->projX("tes", -1, 1);
+		gQA->addm2TH1(m2p);
+		gQA->setXrange(-1, 0.99);
 		gAnaIO.output_plot_path = "./";
 		gAnaIO.saveCanvas(gQA->overlay(), "output_test");
 }

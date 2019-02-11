@@ -239,4 +239,5 @@ void edmJtcSignalProducer::getBkgError(){
         me_err = fmax(fabs(left_ave-mean), fabs(right_ave-mean));
         bg_err = fmax(fabs(in_ave-mean), fabs(out_ave-mean));
 }
+
 #endif

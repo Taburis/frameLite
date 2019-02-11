@@ -92,6 +92,7 @@ class matrixTObjPtr : public matrixPtrHolder<T>{
 						return newm2;
 				}
 				void write(){ for(auto & it:matrixPtrHolder<T>::ref) it->Write();}
+				const char * getName(){return name.c_str();}
 
 				std::string name;
 				bool doFree = 0;

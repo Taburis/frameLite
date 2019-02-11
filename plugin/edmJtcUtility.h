@@ -9,6 +9,7 @@
 #include "TString.h"
 //#include "matrixTObjPtr.h"
 #include "matrixTH1Ptr.h"
+//#include "jtcTH1Player.h"
 
 
 namespace jtc_utility {
@@ -147,7 +148,7 @@ namespace jtc_utility {
 		}
 		TH2D* getV2Bkg(TH2D* signal, float sideMin,float sideMax){
 				TString stemp = signal->GetName();
-				TH2D* bkg = (TH2D*)signal->Clone(stemp+"_bkg");
+				TH2D* bkg = (TH2D*)signal->Clone("bkg_"+stemp);
 				int outterRight= signal->GetXaxis()->FindBin(sideMax);
 				int innerRight = signal->GetXaxis()->FindBin(sideMin);
 				int outterLeft = signal->GetXaxis()->FindBin(-signal->GetXaxis()->GetBinCenter(outterRight));
@@ -281,7 +282,7 @@ namespace jtc_utility {
 				return h->ProjectionY(name, xbin, ybin ,opt);
 		}
 
-		TH1* projX(bool doRebin, TH2D*h2, float x, float y, TString opt){
+		TH1* projX(bool doRebin, TH2D *h2, float x, float y, TString opt){
 				// here h2 needs to be invariant
 				TH1* h=jtc_utility::projectionX(h2, x, y, opt);
 				h->Scale(h2->GetYaxis()->GetBinWidth(1));
