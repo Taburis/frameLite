@@ -335,6 +335,12 @@ namespace jtc_utility {
 				m2->doFree = 1;
 				return m2;
 		}
+
+		float getMean(TH1* h, float x1, float x2){
+				int n1 = h->GetXaxis()->FindBin(x1);
+				int n2 = h->GetXaxis()->FindBin(x2);
+				return h->Integral(n1, n2)/fabs(n2-n1+1);
+		}
 }
 
 

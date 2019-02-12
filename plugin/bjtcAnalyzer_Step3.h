@@ -413,10 +413,13 @@ void bjtcAnalyzer_Step3::testRun(){
 		jtcTH1Player* m2j_in_data = new jtcTH1Player("signal_inclJet_Data_pTweighted_noCorr", npt, ncent);
 		m2j_in_data->autoLoad(fdata);
 		auto m2p = m2j_in_data->projX("tes", -1, 1);
-		gQA->addm2TH1(m2p);
-		gQA->setXrange(-1, 0.99);
+		auto m2err = m2j_in_data->getBkgError();
+		auto m2dr = m2j_in_data->drIntegral("dr_integrated", ndrbin, drbins);
+		gQA->addm2TH1(m2err);
+		gQA->setXrange(-3, 2.99);
 		gAnaIO.output_plot_path = "./";
-		gAnaIO.saveCanvas(gQA->overlay(), "output_test");
+	//	gAnaIO.saveCanvas(gQA->overlay(), "output_test");
+		gAnaIO.saveCanvas(gQA->drawBkgErrorCheck(), "output_test");
 }
 
 void bjtcAnalyzer_Step3::produce_bjtc(){

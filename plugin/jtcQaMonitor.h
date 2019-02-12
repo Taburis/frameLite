@@ -2,8 +2,8 @@
 #ifndef JTCQA_H
 #define JTCQA_H
 
-#include "matrixTObjPtr.h"
 #include "edmJtcUtility.h"
+#include "jtcTH1Player.h"
 #include "ParaSet.h"
 #include "TLatex.h"
 #include "TLine.h"
@@ -18,20 +18,21 @@ class jtcQaMonitor{
 				 };
 				 ~jtcQaMonitor(){
 						 for(auto &it : vm2trash) delete it;
-//						 for(auto &it : vcanvas_trash){
-								 //it->Close();
-//								 delete it;
-//						 }
+						 //						 for(auto &it : vcanvas_trash){
+						 //it->Close();
+						 //								 delete it;
+						 //						 }
 				 }
 				 multi_canvas<TH1>* overlay(TString savename = "", bool drawShape = 0);
 				 multi_canvas<TH1>* overlayR(TString savename = "Ra", TString opt = "");
+				 multi_canvas<TH1>* drawBkgErrorCheck(TString savenname = "");
 				 void flash(){
 						 if(needDelete)for(auto &it : vm2pair){
-//								 it.first->cleanAll();
-//								 delete it.second;
+								 //								 it.first->cleanAll();
+								 //								 delete it.second;
 						 }
 						 if(needDelete){
-//								 for(auto &it : subpad) delete it;
+								 //								 for(auto &it : subpad) delete it;
 								 for(auto it : vm2th1) vm2trash.push_back(it);
 						 }
 						 if(tleg!=nullptr) delete tleg;
@@ -57,6 +58,7 @@ class jtcQaMonitor{
 						 return subpad[2*i*ncol+2*j+isdown];
 				 }
 				 void style0(TH1*h, Color_t color){
+						 // used by overlay and overlayR(upper panel);
 						 h->SetLineColor(color);
 						 h->SetMarkerStyle(20);
 						 h->SetMarkerSize(0.8);
@@ -133,6 +135,7 @@ class jtcQaMonitor{
 				 // pad style config
 				 int xndivision = 505, yndivision = 505;
 				 TLine tl;
+				 TBox box;
 				 TLatex tx;  
 				 TLegend* tleg = nullptr;  
 };
@@ -147,8 +150,8 @@ multi_canvas<TH1>* jtcQaMonitor::overlay(TString savename, bool drawShape){
 		auto m2th = vm2th1[0];
 		float min[npt*ncent];
 		float max[npt*ncent];
-//		std::cout<<"plot here"<<std::endl;
 		if(autoYrange){
+				std::cout<<"setting auto scale for Y axis ... "<<std::endl;
 				for(int i =0; i<npt ; ++i){
 						for(int j=0; j<ncent; ++j){
 								max[i+j*npt] = m2th->at(i,j)->GetMaximum();
@@ -172,7 +175,7 @@ multi_canvas<TH1>* jtcQaMonitor::overlay(TString savename, bool drawShape){
 				std::cout<<"ERROR: please specify the pad_title function first!"<<std::endl;
 				return nullptr;
 		}
-//		std::cout<<"plot here"<<std::endl;
+		//		std::cout<<"plot here"<<std::endl;
 		for(int k=0; k<vm2th1.size(); ++k){
 				m2th = vm2th1[k];
 				for(int i=0; i<npt ; ++i){
@@ -186,7 +189,9 @@ multi_canvas<TH1>* jtcQaMonitor::overlay(TString savename, bool drawShape){
 								m2th->at(i,j)->GetXaxis()->SetNdivisions(xndivision);
 								m2th->at(i,j)->GetYaxis()->SetNdivisions(yndivision);
 								if(fixXrange) m2th->at(i,j)->SetAxisRange(x1, x2,"X");
-								if(autoYrange) m2th->at(i,j)->SetAxisRange(min[i+j*npt]-1.5*grid, max[i+j*npt]+1.5*grid,"Y");
+								if(autoYrange) {
+										m2th->at(i,j)->SetAxisRange(min[i+j*npt]-1.5*grid, max[i+j*npt]+1.5*grid,"Y");
+								}
 								if(fixYrange) m2th->at(i,j)->SetAxisRange(y1, y2, "Y");
 								if(pad_map != nullptr){ 
 										auto index = pad_map(i,j);
@@ -207,7 +212,7 @@ multi_canvas<TH1>* jtcQaMonitor::overlay(TString savename, bool drawShape){
 		}
 		//vcanvas_trash.push_back(cm);
 		if(doSave) cm->SaveAs(savename);
-//		std::cout<<"plot here"<<std::endl;
+		//		std::cout<<"plot here"<<std::endl;
 		return cm;
 }
 
@@ -335,8 +340,8 @@ multi_canvas<TH1>* jtcQaMonitor::overlayR(TString savename, TString opt){
 								m2rat->at(i,j)->Draw();
 								if(ratioLine){
 										if(!fixXrange){
-											   	x1=m2rat->at(i,j)->GetXaxis()->GetXmin();
-											   	x2=m2rat->at(i,j)->GetXaxis()->GetXmax();
+												x1=m2rat->at(i,j)->GetXaxis()->GetXmin();
+												x2=m2rat->at(i,j)->GetXaxis()->GetXmax();
 										}
 										tl.DrawLine(x1, yratioLine, x2, yratioLine);
 								}
@@ -351,4 +356,49 @@ multi_canvas<TH1>* jtcQaMonitor::overlayR(TString savename, TString opt){
 		return cm;
 }
 
+multi_canvas<TH1>* jtcQaMonitor::drawBkgErrorCheck(TString savename){
+		setXrange(-3, 2.99);
+		int npt   = vm2th1[0]->nrow;
+		int ncent = vm2th1[0]->ncol;
+		jtcTH1Player* m2th =(jtcTH1Player*) vm2th1[0];
+		for(int i=0; i<npt ; ++i){
+				for(int j=0; j<ncent; ++j){
+						auto h = m2th->at(i,j);
+						float bg_err = m2th->bkgError(i,j);
+						float me_err = m2th->meError(i,j);
+						float mean  = m2th->bkgLevel(i,j);
+						float err = pow(bg_err*bg_err+me_err*me_err, .5);
+						h->SetAxisRange(mean-4*err, mean+4*err, "Y");
+				}
+		}
+		/*
+		*/
+		fixYrange = 0;
+		autoYrange = 0;
+		auto cm = overlay(savename);
+		for(int i=0; i<npt ; ++i){
+				for(int j=0; j<ncent; ++j){
+						auto indx = pad_map(i,j);
+						int i1=indx.i1, i2 = indx.i2;
+						cm->CD(i1, i2);
+						box.SetFillColorAlpha(kAzure+7, 0.4);
+						float bg_err = m2th->bkgError(i,j);
+						float me_err = m2th->meError(i,j);
+						float mean  = m2th->bkgLevel(i,j);
+						float err = pow(bg_err*bg_err+me_err*me_err, .5);
+						auto h = m2th->at(i,j);
+						float center = h->GetBinContent(h->FindBin(0));
+						box.DrawBox(-2.5, mean+bg_err, 2.499, mean-bg_err);
+						box.SetFillColorAlpha(kRed+1, 0.4);
+						box.DrawBox(-2.5, mean+me_err, -1.5, mean-me_err);
+						box.DrawBox(1.5, mean+me_err, 2.5, mean-me_err);
+						tl.DrawLine(-2.5, mean, 2.5, mean);
+						float percen = err/center;
+						tx.DrawLatexNDC(0.3, 0.2, Form("error/center: %f",percen));
+				}
+		}
+		/*
+		*/
+		return cm;
+}
 #endif

@@ -191,44 +191,6 @@ class matrixTH1Ptr : public matrixTObjPtr<TH1>{
 				 }
 };*/
 
-template<typename T> 
-class multi_canvas : public TCanvas{
-		public: multi_canvas(matrixTObjPtr<T> & p): TCanvas(TString(p.name+"_canvas"), TString(p.name), int(p.ncol*350), int(p.nrow*325))
-				{
-						nrow= p.nrow;
-						ncol= p.ncol;
-						m2ptr = &p;
-						Divide(ncol, nrow);
-				}
-				multi_canvas(TString name, TString title, int mrow, int mcol, float wd=325, float hi=325): TCanvas(name, title, mcol*wd, mrow*hi)
-		{
-				nrow= mrow;
-				ncol= mcol;
-				Divide(ncol, nrow);
-		}
-				int flatten(int n, int m){
-						if(n > nrow -1 || m > ncol -1 ) {
-								std::cout<<" ==== ERROR: index ("<<n<<", "<<m<<") exceeds the range!!! current shape ["<<nrow<<", "<<ncol<<"] ===="<<std::endl;
-								return 0;
-						}
-						//slightly different from the matrixPtrHolder, the row and column in canvas start from 1 and up, 0 stands for the whole pad.
-						return n*ncol+m+1;}
-				void CD(int n, int m){ this->cd(flatten(n,m));}
-				void draw(){
-						this->SetMargin(0.5, 0.5, 0.4, 0.40);
-						//gStyle->SetOptStat(0);
-						for(int i=0; i< nrow; ++i){
-								for(int j=0; j< ncol; ++j){
-										cd(i,j);
-										m2ptr(i,j)->Draw();
-								}
-						}
-				}
-
-		public:
-				int nrow, ncol;
-				matrixTObjPtr<T> *m2ptr;
-};
 
 
 #endif
