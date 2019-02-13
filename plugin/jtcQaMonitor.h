@@ -38,8 +38,11 @@ class jtcQaMonitor{
 						 if(tleg!=nullptr) delete tleg;
 						 tleg=nullptr;
 						 vm2th1.clear();
+						 vm2th1e.clear();
 						 vm2pair.clear();
+						 vm2Epair.clear();
 						 needDelete = 0;
+						 doSystError = 0;
 				 }
 				 void drawLegend(){
 						 if(makeLegend && tleg!=nullptr ) tleg->Draw();
@@ -64,6 +67,13 @@ class jtcQaMonitor{
 						 h->SetMarkerSize(0.8);
 						 h->SetMarkerColor(color);
 				 }
+				 void style0_for_systError(TH1*h, Color_t color){
+						 h->SetFillStyle(1001);
+						 h->SetFillColorAlpha(color, 0.4);
+						 h->SetMarkerStyle(20);
+						 h->SetMarkerSize(0.8);
+						 h->SetMarkerColor(color);
+				 }
 				 void upper_pad_cfg(TH1* h){
 						 h->GetYaxis()->SetTitleSize(0.08);
 						 h->GetYaxis()->SetLabelSize(0.08);
@@ -81,6 +91,7 @@ class jtcQaMonitor{
 						 h->SetMarkerSize(0.7);
 				 }
 				 void addm2TH1Pair(matrixTH1Ptr *m2num, matrixTH1Ptr *m2den);
+				 void addm2TH1ErrorPair(matrixTH1Ptr *m2num, matrixTH1Ptr *m2den);
 				 void setTitlePosition(float a, float b){xtitle = a; ytitle = b;}
 				 void setYrange(float a, float b){y1 = a; y2 = b; fixYrange = 1;}
 				 void setLowerYrange(float a, float b){yR1 = a; yR2 = b; fixRatioRange = 1;}
@@ -122,15 +133,17 @@ class jtcQaMonitor{
 				 float xtitle = 0.5, ytitle =0.85;
 				 bool fixXrange = 0, fixYrange = 0, autoYrange = 1, fixRatioRange = 0;
 				 //pad config
-				 bool doSave = 0, makeTitle = 0, needDelete = 0, makeLegend = 0;
+				 bool doSave = 0, makeTitle = 0, needDelete = 0, makeLegend = 0, doSystError = 0;
 				 int ncol = 1, nrow = 1;
 				 int npt, ncent;
 				 float xline , yline, yratioLine;
 				 bool drawLine = 0 , ratioLine = 0;
 				 std::vector<matrixTH1Ptr*> vm2th1;
+				 std::vector<matrixTH1Ptr*> vm2th1e;
 				 std::vector<matrixTH1Ptr*> vm2trash;
 				 std::vector<TCanvas*> vcanvas_trash;
 				 std::vector<std::pair<matrixTH1Ptr*, matrixTH1Ptr*>> vm2pair;
+				 std::vector<std::pair<matrixTH1Ptr*, matrixTH1Ptr*>> vm2Epair; // pair of error
 				 std::vector<TPad*> subpad; 
 				 // pad style config
 				 int xndivision = 505, yndivision = 505;
@@ -221,6 +234,12 @@ void jtcQaMonitor::addm2TH1Pair(matrixTH1Ptr *m2num, matrixTH1Ptr *m2den){
 		return;
 }
 
+void jtcQaMonitor::addm2TH1ErrorPair(matrixTH1Ptr *m2num, matrixTH1Ptr *m2den){
+		vm2Epair.push_back(std::make_pair(m2num, m2den));
+		doSystError =1;
+		return;
+}
+
 multi_canvas<TH1>* jtcQaMonitor::overlayR(TString savename, TString opt){
 		// the ratio will be store in vm2th1
 		TString cmname = "c_"+savename;
@@ -232,6 +251,14 @@ multi_canvas<TH1>* jtcQaMonitor::overlayR(TString savename, TString opt){
 				if(opt == "B") h = (*(it.first))%(*(it.second));
 				else h = (*(it.first))/(*(it.second));
 				vm2th1.push_back(h);
+		}
+		if(doSystError){
+				for(auto &it : vm2Epair ){
+						matrixTH1Ptr *h;
+						if(opt == "B") h = (*(it.first))%(*(it.second));
+						else h = (*(it.first))/(*(it.second));
+						vm2th1e.push_back(h);
+				}
 		}
 		npt   = vm2th1[0]->nrow;
 		ncent = vm2th1[0]->ncol;
@@ -269,7 +296,7 @@ multi_canvas<TH1>* jtcQaMonitor::overlayR(TString savename, TString opt){
 				}
 		}
 
-		matrixTH1Ptr* m2th1, *m2th2;
+		matrixTH1Ptr* m2th1, *m2th2, *m2th1E, *m2th2E, *m2ratE;
 		if(autoYrange){
 				auto m2th1 = vm2pair[0].first;
 				auto m2th2 = vm2pair[0].second;
@@ -306,6 +333,11 @@ multi_canvas<TH1>* jtcQaMonitor::overlayR(TString savename, TString opt){
 				m2th1 = vm2pair[k].first;
 				m2th2 = vm2pair[k].second;
 				auto m2rat = vm2th1[k];
+				if(doSystError){
+						m2th1E= vm2Epair[k].first;
+						m2th2E= vm2Epair[k].second;
+						m2ratE = vm2th1e[k];
+				}
 				int color_index = 0;
 				for(int i=0; i<npt ; ++i){
 						for(int j=0; j<ncent; ++j){
@@ -325,6 +357,13 @@ multi_canvas<TH1>* jtcQaMonitor::overlayR(TString savename, TString opt){
 								m2th1->at(i,j)->Draw();
 								m2th2->at(i,j)->Draw("same");
 
+								if(doSystError){
+										style0_for_systError(m2th1E->at(i,j), color_vec[color_index]);
+										style0_for_systError(m2th2E->at(i,j), color_vec[color_index+1]);
+										m2th1E->at(i,j)->Draw("same e2");
+										m2th2E->at(i,j)->Draw("same e2");
+								}
+
 								if(i+j==0) drawLegend();
 								if(makeTitle)  tx.DrawLatexNDC(xtitle, ytitle, pad_title(i,j));
 								if(drawLine ){
@@ -338,6 +377,10 @@ multi_canvas<TH1>* jtcQaMonitor::overlayR(TString savename, TString opt){
 								m2rat->at(i,j)->GetXaxis()->SetTitle(m2th1->at(i,j)->GetXaxis()->GetTitle());
 								if(fixRatioRange) m2rat->at(i,j)->SetAxisRange(yR1, yR2, "Y");
 								m2rat->at(i,j)->Draw();
+								if(doSystError){
+										style0_for_systError(m2ratE->at(i,j), kGray+4);
+										m2ratE->at(i,j)->Draw("same e2");
+								}
 								if(ratioLine){
 										if(!fixXrange){
 												x1=m2rat->at(i,j)->GetXaxis()->GetXmin();
@@ -357,6 +400,7 @@ multi_canvas<TH1>* jtcQaMonitor::overlayR(TString savename, TString opt){
 }
 
 multi_canvas<TH1>* jtcQaMonitor::drawBkgErrorCheck(TString savename){
+		// should add the projX jtcTH1Player first and this jtcTH1Player should got the bkg error already.
 		setXrange(-3, 2.99);
 		int npt   = vm2th1[0]->nrow;
 		int ncent = vm2th1[0]->ncol;
@@ -371,8 +415,6 @@ multi_canvas<TH1>* jtcQaMonitor::drawBkgErrorCheck(TString savename){
 						h->SetAxisRange(mean-4*err, mean+4*err, "Y");
 				}
 		}
-		/*
-		*/
 		fixYrange = 0;
 		autoYrange = 0;
 		auto cm = overlay(savename);
@@ -397,8 +439,6 @@ multi_canvas<TH1>* jtcQaMonitor::drawBkgErrorCheck(TString savename){
 						tx.DrawLatexNDC(0.3, 0.2, Form("error/center: %f",percen));
 				}
 		}
-		/*
-		*/
 		return cm;
 }
 #endif

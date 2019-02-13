@@ -14,9 +14,9 @@ int main(){
 		auto ps_all = ps+ps_step23;
 		bjtcAnalyzer_Step2 step2(ps_all);
 		//step2.inclCalo_Wf001();
-		step2.dijetMCwf101();
-		//step2.bjetMCwf101();
+		//step2.dijetMCwf101();
 		//step2.Datawf101();
+		step2.bjetMCwf101();
 		step2.evaluate();
 		/*
 		bjtcAnalyzer_Step3 step3(ps_all);

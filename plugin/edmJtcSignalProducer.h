@@ -185,10 +185,14 @@ double edmJtcSignalProducer::fixSeagull(TH2D* hsig, int ntry){
 		TLatex  tx; tx.DrawLatexNDC(0.3, 0.8, Form("Chi2 value: %f", rvalue));
 		tx.DrawLatexNDC(0.3, 0.2, Form("Fitting chi2: %f", chi2));
 		tx.SetTextSize(.12);
-		if(chi2 > rvalue) tx.DrawLatexNDC(0.2, 0.5, "#color[2]{NOT APPLY}");
+		bool isDeprecated = 0;
+		if((1.2)*chi2 > rvalue){
+			   	tx.DrawLatexNDC(0.2, 0.5, "#color[2]{Deprecated}");
+				isDeprecated = 1;
+		}
 		auto code =ptr->Status();
 		//std::cout<<code<<std::endl;
-		if(code == 0 && rvalue > chi2){
+		if(code == 0 && !isDeprecated){
 			   	correction_TF1(hsig, func_seagull);
 				return rvalue;}
 		else if( ntry < 2 ){

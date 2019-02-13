@@ -182,7 +182,7 @@ void edmJtcAnalyzer::check_phi_sideband(TString cname){
 
 void edmJtcAnalyzer::signal_deta_qa(){
 		gQA->flash();
-		TString label = doSeagullCorr ? "_fixSg_" : "";
+		TString label = doSeagullCorr ? "fixSg_" : "";
 		matrixTH1Ptr m2sig_deta("deta_"+sig_name, m2sig.Nrow(), m2sig.Ncol() ); 		
 		matrixTH1Ptr m2sig_side_deta("deta_side_"+sig_name, m2sig.Nrow(), m2sig.Ncol() ); 		
 		gQA->pad_map = ps->getPara<mapper_func>("pad_map");
