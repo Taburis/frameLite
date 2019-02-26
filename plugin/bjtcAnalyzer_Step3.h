@@ -23,6 +23,7 @@ class bjtcAnalyzer_Step3 : public rootEDMAnalyzer {
 						 return m2;
 				 }
 				 void testRun();
+				 void JER();
 				 void get_res_corr();
 				 void check_dijtc_result();
 				 void recoJetCheck();
@@ -37,8 +38,10 @@ class bjtcAnalyzer_Step3 : public rootEDMAnalyzer {
 				 void produce_bjtc();
 				 void produce_djtc();
 				 void get_bjtc_correction();
-				 void overlay_injtc_vs_bjtc();
+				 void data_overlay_injtc_vs_bjtc();
 				 void bjtc_validation();
+				 void AN_plot();
+				 void ending_plots();
 		public: 
 				 int npt= 6, ncent=1;
 				 int ndrbin;
@@ -215,6 +218,10 @@ void bjtcAnalyzer_Step3::get_dijtc_correction(){
 
 		TString folder = ps->getPara<TString>("step3output_folder");
 		auto wf = TFile::Open(folder+"inclJet_correction.root", "recreate");
+		m2j_trk->smooth();
+		m2y_trk->smooth();
+		m2j_jff->smooth();
+		m2y_jff->smooth();
 		m2j_jff->write();
 		m2y_jff->write();
 		m2j_trk->write();
@@ -263,15 +270,35 @@ void bjtcAnalyzer_Step3::produce_djtc(){
 		auto m2y_step2 = (jtcTH1Player*) m2y_step1->clone("dijtc_yield_step2");
 		m2j_step2 ->ring_corr(m2j_jff, 1);
 		m2y_step2 ->ring_corr(m2y_jff, 1);
-		auto dr_m2j_step2 = m2j_step2->drIntegral("dr_signal_dijtc_jetShape_step2", ndrbin, drbins);
-		auto dr_m2y_step2 = m2y_step2->drIntegral("dr_signal_dijtc_yield_step2", ndrbin, drbins);
+
+		auto m2j_step2_prox = m2j_step2->getBkgError();
+		auto m2y_step2_prox = m2y_step2->getBkgError();
+		gQA->addm2TH1(m2j_step2_prox);
+		gAnaIO.saveCanvas(gQA->drawBkgErrorCheck(), "djtc_data_js_bkgSystCheck");
+		gQA->addm2TH1(m2y_step2_prox);
+		gAnaIO.saveCanvas(gQA->drawBkgErrorCheck(), "djtc_data_py_bkgSystCheck");
+
 		//step3: subtract the bkg
+		auto m2j_step3 = m2j_step2->bkgSub("dijtc_jetShape_step3", 1.5, 2.5);
+		auto m2y_step3 = m2y_step2->bkgSub("dijtc_yield_step3", 1.5, 2.5);
+		
+		auto dr_m2j_step3 = m2j_step3->drIntegral("dr_signal_dijtc_jetShape_step3", ndrbin, drbins);
+		auto dr_m2y_step3 = m2y_step3->drIntegral("dr_signal_dijtc_yield_step3", ndrbin, drbins);
+		auto dr_m2j_err = (jtcTH1Player*) dr_m2j_step3->clone("dr_dijtc_jetShape_systError");
+		auto dr_m2y_err = (jtcTH1Player*) dr_m2y_step3->clone("dr_dijtc_yield_systError");
+		dr_m2j_err->setDrError(m2j_step2);
+		dr_m2y_err->setDrError(m2y_step2);
+		
 		folder = ps->getPara<TString>("step3output_folder");
 		auto wf = TFile::Open(folder+"inclJet_data_final.root", "recreate");
-		dr_m2j_step2->write();
-		dr_m2y_step2->write();
+		dr_m2j_step3->write();
+		dr_m2y_step3->write();
 		m2j_step2->write();
 		m2y_step2->write();
+		m2j_step3->write();
+		m2y_step3->write();
+		dr_m2j_err->write();
+		dr_m2y_err->write();
 		wf->Close();
 }
 
@@ -347,15 +374,43 @@ void bjtcAnalyzer_Step3::get_bjtc_correction(){
 		auto m2j_jff = (*m2j_tt_rg)%(*m2j_tb_gg);
 		m2j_jff->setName("bjtc_jetShape_jff");
 
+		m2j_jff->smooth();
+		m2y_jff->smooth();
+		gQA->addm2TH1(m2j_jff);
+		gQA->setTitlePosition(0.425,0.85);
+		gQA->setYrange(0.6, 1.4);
+		gQA->addhLine(1);
+		gAnaIO.saveCanvas(gQA->overlay(), "bjtc_JS_pp_jff");
+
 		gQA->addm2TH1Pair(m2j_tt_rg, m2j_tb_gg);
+		gQA->setTitlePosition(0.625,0.85);
 		gQA->bookLegend(.5, .6, .9, .8);
 		gQA->addLegendPair("reco tag&true b-jet", "gen true b-jet", 0);
-		gAnaIO.saveCanvas(gQA->overlayR(), "bjtc_JS_pp_jff");
+		gAnaIO.saveCanvas(gQA->overlayR(), "bjtc_JS_pp_ratio_jff");
 
 		matrixTH1Ptr* m2y_tt_rr = new matrixTH1Ptr("dr_raw_taggedTrueBJet_RecoJet_RecoTrack_noCorr", npt, ncent);
 		m2y_tt_rr->autoLoad(fbMC_rr);
+		//matrixTH1Ptr* m2y_tt_gr = new matrixTH1Ptr("dr_raw_taggedTrueBJet_GenJet_RecoTrack_noCorr", npt, ncent);
+		//m2y_tt_gr->autoLoad(fbMC_gr);
+		matrixTH1Ptr* m2y_tt_gg = new matrixTH1Ptr("dr_raw_taggedTrueBJet_GenJet_GenTrack_noCorr", npt, ncent);
+		m2y_tt_gg->autoLoad(fbMC_gg);
 		auto m2y_trk = (*m2y_tt_rr)%(*m2y_tt_rg);
+//		auto m2y_trk_au = (*m2y_tt_gr)%(*m2y_tt_gg);
+		auto m2y_trk_or = m2y_trk->clone("bjtc_yield_trkCorr_au");
 		m2y_trk->setName("bjtc_yield_trkCorr");
+		m2y_trk->smooth();
+
+		// AN plots
+		gQA->addm2TH1(m2y_trk);
+		gQA->addm2TH1(m2y_trk_or);
+		gQA->bookLegend(.5, .3, .9, .6);
+		gQA->setYrange(0.5, 1.1);
+		gQA->addhLine(1);
+		gQA->setTitlePosition(0.425,0.85);
+		gQA->addLegendEntry("trkCorr.", 0);
+		gQA->addLegendEntry("Reco-jet.", 1);
+		gAnaIO.saveCanvas(gQA->overlay(), "bjtc_yield_AN_pp_trkCorr");
+		gQA->setTitlePosition(0.525,0.85);
 
 		gQA->addm2TH1Pair(m2y_tt_rr, m2y_tt_rg);
 		gQA->bookLegend(.5, .6, .9, .8);
@@ -412,6 +467,8 @@ void bjtcAnalyzer_Step3::get_bjtc_correction(){
 
 		TString folder = ps->getPara<TString>("step3output_folder");
 		auto wf = TFile::Open(folder+"bjtc_correction.root", "recreate");
+		m2j_trk->smooth();
+		m2y_trk->smooth();
 		m2j_jff->write();
 		m2y_jff->write();
 		m2j_trk->write();
@@ -490,27 +547,41 @@ void bjtcAnalyzer_Step3::produce_bjtc(){
 		auto m2y_step2 =(jtcTH1Player*) m2y_step1->clone("signal_bjtc_yield_step2");
 		m2j_step2->ring_corr(m2j_jff, 1);
 		m2y_step2->ring_corr(m2y_jff, 1);
+
+
+		auto m2j_step2_prox = m2j_step2->getBkgError();
+		auto m2y_step2_prox = m2y_step2->getBkgError();
+		gQA->addm2TH1(m2j_step2_prox);
+		gAnaIO.saveCanvas(gQA->drawBkgErrorCheck(), "bjtc_data_js_bkgSystCheck");
+		gQA->addm2TH1(m2y_step2_prox);
+		gAnaIO.saveCanvas(gQA->drawBkgErrorCheck(), "bjtc_data_py_bkgSystCheck");
 		//step3: subtract the bkg
-		auto dr_m2j_step2 = m2j_step2->drIntegral("dr_signal_bjtc_jetShape_step2", ndrbin, drbins);
-		auto dr_m2y_step2 = m2y_step2->drIntegral("dr_signal_bjtc_yield_step2", ndrbin, drbins);
-/*
-		gQA->bookLegend();
-		gQA->addLegendEntry("trk corrected", 0);
-		gQA->addLegendEntry("jff corrected", 1);
-		gAnaIO.saveCanvas(gQA->overlay(), "bjtc_yield_corrected");
-		*/
+		auto m2j_step3 = m2j_step2->bkgSub("signal_bjtc_jetShape_step3", 1.5, 2.5);
+		auto m2y_step3 = m2j_step2->bkgSub("signal_bjtc_yield_step3", 1.5, 2.5);
+		auto dr_m2j_step3 = m2j_step3->drIntegral("dr_signal_bjtc_jetShape_step3", ndrbin, drbins);
+		auto dr_m2y_step3 = m2y_step3->drIntegral("dr_signal_bjtc_yield_step3", ndrbin, drbins);
+
+		auto dr_m2j_err = (jtcTH1Player*) dr_m2j_step3->clone("dr_bjtc_jetShape_systError");
+		auto dr_m2y_err = (jtcTH1Player*) dr_m2y_step3->clone("dr_bjtc_yield_systError");
+		dr_m2j_err->setDrError(m2j_step2);
+		dr_m2y_err->setDrError(m2y_step2);
 
 		folder = ps->getPara<TString>("step3output_folder");
 		auto wf = TFile::Open(folder+"bjtc_data_final.root", "recreate");
 		m2j_step2->write();
 		m2y_step2->write();
-		dr_m2j_step2->write();
-		dr_m2y_step2->write();
+		m2j_step3->write();
+		m2y_step3->write();
+		dr_m2j_err->write();
+		dr_m2j_step3->write();
+		dr_m2y_step3->write();
+		dr_m2j_err->write();
+		dr_m2y_err->write();
 
 		wf->Close();
 }
 
-void bjtcAnalyzer_Step3::overlay_injtc_vs_bjtc(){
+void bjtcAnalyzer_Step3::data_overlay_injtc_vs_bjtc(){
 		matrixTH1Ptr* m2j_data = new matrixTH1Ptr("dr_signal_dijtc_jetShape_step2", npt, ncent);
 		matrixTH1Ptr* m2y_data = new matrixTH1Ptr("dr_signal_dijtc_yield_step2", npt, ncent);
 		TString folder = ps->getPara<TString>("step3output_folder");
@@ -542,7 +613,7 @@ void bjtcAnalyzer_Step3::overlay_injtc_vs_bjtc(){
 }
 
 void bjtcAnalyzer_Step3::bjtc_validation(){
-		float purity = 0.66;
+		float purity = 0.7;
 		gQA->setXrange(0, 0.99);
 		gQA->addRLine(1);
 		gQA->setTitlePosition(0.625,0.85);
@@ -633,3 +704,105 @@ void bjtcAnalyzer_Step3::check_WTAvsEsch_result(){
 		gQA->addLegendEntry("WTA", 0);
 		gAnaIO.saveCanvas(gQA->overlay(), "bjtc_wta_vs_esm");
 }
+
+void bjtcAnalyzer_Step3::JER(){
+		TString folder = ps->getPara<TString>("step2output_folder");
+		auto fd_rg_gA = TFile::Open(folder+"Signal_PYTHIA6_dijetSample_allJets_genAxis_RecoJet_GenTrack.root");
+		auto fb_rg_gA = TFile::Open(folder+"Signal_PYTHIA6_bjetSample_allJets_genAxis_RecoJet_GenTrack.root");
+		auto djtc_rg_ga = new jtcTH1Player("dr_signal_inclJet_RecoJet_GenTrack_pTweighted_noCorr", npt, ncent);
+		auto djtc_gg = new jtcTH1Player("dr_signal_inclJet_GenJet_GenTrack_pTweighted_noCorr", npt, ncent);
+		auto djtc_rg = new jtcTH1Player("dr_signal_inclJet_RecoJet_GenTrack_pTweighted_noCorr", npt, ncent);
+		djtc_rg_ga->autoLoad(fd_rg_gA);
+		djtc_rg->autoLoad(fdMC_rg);
+		djtc_gg->autoLoad(fdMC_gg);
+		gQA->addm2TH1Pair(djtc_rg, djtc_rg_ga);
+		gQA->bookLegend(.5, .6, .9, .8);
+		gQA->addRLine(1);
+		gQA->addLegendPair( "reco-jet-axis", "gen-jet-axis", 0);
+		gAnaIO.saveCanvas(gQA->overlayR(), "djtc_jer_syst");
+
+		gQA->addm2TH1Pair(djtc_rg_ga, djtc_gg);
+		gQA->bookLegend(.5, .6, .9, .8);
+		gQA->addLegendPair( "reco-jet (gen-axis)", "gen-jet", 0);
+		gAnaIO.saveCanvas(gQA->overlayR(), "djtc_jer_2_syst");
+
+		auto bjtc_rg_ga = new jtcTH1Player("dr_signal_trueBJet_RecoJet_GenTrack_pTweighted_noCorr", npt, ncent);
+		auto bjtc_gg = new jtcTH1Player("dr_signal_trueBJet_GenJet_GenTrack_pTweighted_noCorr", npt, ncent);
+		auto bjtc_rg = new jtcTH1Player("dr_signal_trueBJet_RecoJet_GenTrack_pTweighted_noCorr", npt, ncent);
+		bjtc_rg_ga->autoLoad(fb_rg_gA);
+		bjtc_rg->autoLoad(fbMC_rg);
+		bjtc_gg->autoLoad(fbMC_gg);
+
+		gQA->addm2TH1Pair(bjtc_rg, bjtc_rg_ga);
+		gQA->bookLegend(.5, .6, .9, .8);
+		gQA->addLegendPair( "reco-jet-axis", "gen-jet-axis", 0);
+		gAnaIO.saveCanvas(gQA->overlayR(), "bjtc_jer_syst");
+
+		gQA->addm2TH1Pair(bjtc_rg_ga, bjtc_gg);
+		gQA->bookLegend(.5, .6, .9, .8);
+		gQA->addLegendPair( "reco-jet (gen-axis)", "gen-jet", 0);
+		gAnaIO.saveCanvas(gQA->overlayR(), "bjtc_jer_2_syst");
+}
+
+void bjtcAnalyzer_Step3::ending_plots(){
+		TString folder = ps->getPara<TString>("step3output_folder");
+		auto fd = TFile::Open(folder+"inclJet_data_final.root");
+		auto fb = TFile::Open(folder+"bjtc_data_final.root");
+		//auto sigj_di_data = new jtcTH1Player("signal_dijtc_jetShape_step2", npt, ncent);
+		//auto sigj_b_data = new jtcTH1Player("signal_bjtc_jetShape_step2", npt, ncent);
+		auto data_di= new jtcTH1Player("dr_signal_dijtc_jetShape_step3", npt, ncent);
+		auto data_b= new jtcTH1Player("dr_signal_bjtc_jetShape_step3", npt, ncent);
+		auto data_di_err= new jtcTH1Player("dr_dijtc_jetShape_systError", npt, ncent);
+		auto data_b_err= new jtcTH1Player("dr_bjtc_jetShape_systError", npt, ncent);
+		data_di->autoLoad(fd);
+		data_b->autoLoad(fb);
+		data_b_err->autoLoad(fb);
+		data_di_err->autoLoad(fd);
+		data_b_err->add_frac_error(0.11);
+		//sigj_di_data->autoLoad(fd);
+		//sigj_b_data->autoLoad(fb);
+
+		auto mc_di_sig= new jtcTH1Player("signal_inclJet_GenJet_GenTrack_pTweighted_noCorr", npt, ncent);
+		auto mc_b_sig= new jtcTH1Player("signal_trueBJet_GenJet_GenTrack_pTweighted_noCorr", npt, ncent);
+		mc_di_sig->autoLoad(fdMC_gg);
+		mc_b_sig->autoLoad(fbMC_gg);
+		auto mc_di_prox = mc_di_sig->getBkgError();
+		auto mc_b_prox = mc_b_sig->getBkgError();
+		auto dr_mc_di = mc_di_sig->drIntegral("dr_dijtc_jetShape_gg",ndrbin, drbins);
+		auto dr_mc_b = mc_b_sig->drIntegral("dr_bjtc_jetShape_gg", ndrbin, drbins);
+		auto mc_di_err= (jtcTH1Player*)dr_mc_di->clone("dr_dijtc_jetShape_systError");
+		auto mc_b_err = (jtcTH1Player*)dr_mc_b->clone("dr_bjtc_jetShape_systError");
+		mc_di_err->setDrError(mc_di_sig);
+		mc_b_err->setDrError(mc_b_sig);
+
+		auto ratio_data = (*data_b)/(*data_di);
+		auto ratio_data_err = (*data_b_err)/(*data_di_err);
+		auto ratio_mc = (*dr_mc_b)/(*dr_mc_di);
+		auto ratio_mc_err = (*mc_b_err)/(*mc_di_err);
+
+		gQA->addm2TH1(ratio_data);
+		gQA->addm2TH1(ratio_mc);
+		gQA->bookLegend(.3, .6, .9, .8);
+		gQA->setTitlePosition(0.325,0.85);
+		gQA->addLegendEntry("b-jet/incl-jet (data)", 0);
+		gQA->addLegendEntry("b-jet/incl-jet (PYTHIA6)", 1);
+		gQA->addm2TH1Error(ratio_data_err);
+		gQA->addm2TH1Error(ratio_mc_err);
+		gQA->setXrange(0, 0.99);
+		gQA->addRLine(1);
+		gQA->setYrange(0.5, 3);
+		gAnaIO.saveCanvas(gQA->overlay(), "overlay_ratio_data_vs_mc");
+
+
+		gQA->fixYrange = 0;
+		gQA->autoYrange = 1;
+		gQA->addm2TH1Pair(data_di, dr_mc_di);
+		gQA->bookLegend(.5, .6, .9, .8);
+		gQA->addLegendPair( "inclJet Data", "inclJet MC", 0);
+		gAnaIO.saveCanvas(gQA->overlayR(), "overlay_inclJet_data_vs_mc");
+		gQA->addm2TH1Pair(data_b, dr_mc_b);
+		gQA->bookLegend(.5, .6, .9, .8);
+		gQA->addLegendPair( "b-jet Data", "b-jet MC", 0);
+		gAnaIO.saveCanvas(gQA->overlayR(), "overlay_bJet_data_vs_mc");
+}
+

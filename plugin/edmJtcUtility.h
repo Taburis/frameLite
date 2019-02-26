@@ -26,8 +26,7 @@ namespace jtc_utility {
 
 		Double_t phibin[18] ={-1.50796, -1.00531,-0.879646, -.75398, -0.628319,-0.502655, -0.376991, -0.251327, -0.125664, 0.125664, 0.251327, 0.376991, 0.502655, 0.628319,.75398, 0.879646, 1.00531,1.50796};
 
-		void invariant_TH2(TH2* h){ h->Scale(1.0/h->GetXaxis()->GetBinWidth(1)/h->GetYaxis()->GetBinWidth(1));
-		}
+		void invariant_TH2(TH2* h){ h->Scale(1.0/h->GetXaxis()->GetBinWidth(1)/h->GetYaxis()->GetBinWidth(1));}
 
 		Double_t seagull_pol2_par3(Double_t *x, Double_t *par){
 				//fitting function is: a0+a1*|x-x0|+a2*x+a3*x^2;
@@ -58,7 +57,7 @@ namespace jtc_utility {
 				if( isMix) histType = histType + "_mixing";
 				return histType;
 		}
-
+/*
 		TH2D* sideBandMixingTableMaker(TH2D* h2, float sidemin, float sidemax){
 				int s1 = h2->GetYaxis()->FindBin(sidemin);
 				int s2 = h2->GetYaxis()->FindBin(sidemax-0.001);
@@ -92,6 +91,7 @@ namespace jtc_utility {
 				temp->Delete();
 				return ME;
 		}
+		*/
 		TH2D* mixingTableMaker(TH2D* mix, bool doSmooth){
 				float midLeft = -0.15;
 				float midRight = 0.15;
@@ -319,6 +319,7 @@ namespace jtc_utility {
 								if(dr > drmax) continue;
 								int nn = corr->GetXaxis()->FindBin(dr);
 								h->SetBinContent(k,l, h->GetBinContent(k,l)/corr->GetBinContent(nn));
+								//h->SetBinError(k,l, h->GetBinError(k,l)/corr->GetBinContent(nn));
 						}
 				}
 				return ;
@@ -340,6 +341,57 @@ namespace jtc_utility {
 				int n1 = h->GetXaxis()->FindBin(x1);
 				int n2 = h->GetXaxis()->FindBin(x2);
 				return h->Integral(n1, n2)/fabs(n2-n1+1);
+		}
+
+		void add_frac_error(TH1* h , float frac){
+				int ndr = h->GetNbinsX();
+				for(int k=1; k< ndr+1; ++k){
+						float err1 = h->GetBinContent(k)*frac;
+						float err0 = h->GetBinError(k);
+						float err = pow(err1*err1+err0*err0, 0.5);
+						h->SetBinError(k, err);
+				}
+				return;
+		}
+
+		TH2D* sideBandMixingTableMaker(TH2D* h2, float sidemin, float sidemax){
+				int s1 = h2->GetYaxis()->FindBin(sidemin);
+				int s2 = h2->GetYaxis()->FindBin(sidemax-0.001);
+				int dbin = s2-s1+1;
+				TH1D* temp = (TH1D*) h2->ProjectionX("_sideMix_deta", s1, s2);
+				TString name = h2->GetName();
+				TH2D* ME = (TH2D*) h2->Clone(name);
+				float mean=0;
+				float midLeft = -0.15;
+				float midRight = 0.15;
+				int binLeft = temp->FindBin(midLeft);
+				int binRight= temp->FindBin(midRight)+1;
+				for(int i=binLeft;i<binRight; i++){
+						mean += temp->GetBinContent(i);
+				}
+				mean = mean /(temp->FindBin(midRight)-temp->FindBin(midLeft)+1);
+				//mean = mean /(temp->FindBin(midRight)-temp->FindBin(midLeft)+1)/h2->GetNbinsY();
+				temp->Scale(1.0/mean);
+				for(int ix=1; ix<h2->GetNbinsX()+1; ix++){
+						for(int iy=1; iy<h2->GetNbinsY()+1; iy++){
+								float bincontent = temp->GetBinContent(ix);
+								float binerror = temp->GetBinError(ix);
+								// the empty side band bin will be filled by 1;
+								//if( bincontent == 0){
+								if( (ix< binRight && ix>= binLeft) || bincontent == 0){
+										ME->SetBinContent(ix, iy, 1);
+										ME->SetBinError(ix, iy, 0);
+								}
+								else{
+										ME->SetBinContent(ix, iy, bincontent);
+										ME->SetBinError(ix, iy, binerror);
+										//ME->SetBinContent(ix, iy, bincontent/dbin);
+										//ME->SetBinError(ix, iy, binerror/sqrt(dbin));
+								}
+						}
+				}
+				temp->Delete();
+				return ME;
 		}
 }
 

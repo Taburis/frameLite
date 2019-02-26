@@ -22,6 +22,7 @@ class bjtcAnalyzer_Step2 : public rootEDMAnalyzer {
 				void testWf001();
 				void inclCalo_Wf001();
 				virtual int analyze();
+				void jerMCwf101();
 
 		public : std::vector<edmJtcAnalyzer*> analyzers;
 				 ParaSet *ps;
@@ -193,7 +194,17 @@ void bjtcAnalyzer_Step2::Datawf101(){
 		auto output_name = ps->getPara<TString>("pp5TeVData_step2output_name");
 		datawf001(input_file, output_name);
 }
+void bjtcAnalyzer_Step2::jerMCwf101(){
+		auto input_file = ps->getPara<TString>("dijetMC_step2input_rg_gA_file");
+		auto output_name = ps->getPara<TString>("dijetMC_step2output_name");
+		output_name = output_name+"_genAxis";
+		wf001("dijetMC_GA_",input_file, output_name, 0, 1);
 
+		input_file = ps->getPara<TString>("bjetMC_step2input_rg_gA_file");
+		output_name = ps->getPara<TString>("bjetMC_step2output_name");
+		output_name = output_name+"_genAxis";
+	//	wf001("bjetMC_GA_",input_file, output_name, 0, 1);
+}
 void bjtcAnalyzer_Step2::bjetMCwf101(){
 		// when all the bjet samples and data are ready and start to pull the signal from all of them:
 		TString output_name = ps->getPara<TString>("bjetMC_step2output_name");

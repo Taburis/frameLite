@@ -26,6 +26,7 @@ class jtcQaMonitor{
 				 multi_canvas<TH1>* overlay(TString savename = "", bool drawShape = 0);
 				 multi_canvas<TH1>* overlayR(TString savename = "Ra", TString opt = "");
 				 multi_canvas<TH1>* drawBkgErrorCheck(TString savenname = "");
+				 multi_canvas<TH1>* jtc_check001(jtcTH1Player&, TString savename = "");
 				 void flash(){
 						 if(needDelete)for(auto &it : vm2pair){
 								 //								 it.first->cleanAll();
@@ -57,6 +58,10 @@ class jtcQaMonitor{
 				 void addm2TH1(matrixTH1Ptr* m2){
 						 vm2th1.push_back(m2);
 				 }
+				 void addm2TH1Error(matrixTH1Ptr* m2){
+						 vm2th1e.push_back(m2);
+						 doSystError =1;
+				 }
 				 TPad* padcd(int i, int j, int isdown=0){
 						 return subpad[2*i*ncol+2*j+isdown];
 				 }
@@ -85,6 +90,7 @@ class jtcQaMonitor{
 						 h->GetXaxis()->SetLabelSize(0.16);
 						 h->GetXaxis()->SetTitleSize(0.18);
 						 h->GetXaxis()->SetNdivisions(xndivision);
+						 h->GetYaxis()->SetNdivisions(yndivision);
 						 h->GetXaxis()->SetTickSize(0.08);
 						 h->GetYaxis()->SetTickSize(0.06);
 						 h->SetMarkerStyle(20);
@@ -121,6 +127,9 @@ class jtcQaMonitor{
 						 tleg->AddEntry(((vm2pair[n]).first)->at(0,0), s1, opt);
 						 tleg->AddEntry(((vm2pair[n]).second)->at(0,0), s2, opt);
 						 makeLegend =1;
+				 }
+				 void reset_para(){
+						 doSave = 0; fixYrange = 0; autoYrange = 1; fixRatioRange = 0;
 				 }
 
 		public :// ParaSet * ps;
@@ -163,6 +172,7 @@ multi_canvas<TH1>* jtcQaMonitor::overlay(TString savename, bool drawShape){
 		auto m2th = vm2th1[0];
 		float min[npt*ncent];
 		float max[npt*ncent];
+		matrixTH1Ptr *m2the;
 		if(autoYrange){
 				std::cout<<"setting auto scale for Y axis ... "<<std::endl;
 				for(int i =0; i<npt ; ++i){
@@ -191,6 +201,7 @@ multi_canvas<TH1>* jtcQaMonitor::overlay(TString savename, bool drawShape){
 		//		std::cout<<"plot here"<<std::endl;
 		for(int k=0; k<vm2th1.size(); ++k){
 				m2th = vm2th1[k];
+				if(doSystError) m2the = vm2th1e[k];
 				for(int i=0; i<npt ; ++i){
 						for(int j=0; j<ncent; ++j){
 								if(!(m2th->isValid(i,j))) continue;
@@ -213,6 +224,10 @@ multi_canvas<TH1>* jtcQaMonitor::overlay(TString savename, bool drawShape){
 								m2th->at(i,j)->GetXaxis()->CenterTitle();
 								if(drawShape)m2th->at(i,j)->DrawNormalized("same");
 								else m2th->at(i,j)->Draw("same");
+								if(doSystError){
+										style0_for_systError(m2the->at(i,j), color_vec[k]);						
+										m2the->at(i,j)->Draw("same e2");
+								}
 								if(makeTitle)  tx.DrawLatexNDC(xtitle, ytitle, pad_title(i,j));
 								if(i+j==0) drawLegend();
 								if(drawLine ){
@@ -441,4 +456,32 @@ multi_canvas<TH1>* jtcQaMonitor::drawBkgErrorCheck(TString savename){
 		}
 		return cm;
 }
+
+multi_canvas<TH1>* jtcQaMonitor::jtc_check001(jtcTH1Player& j2, TString savename = ""){
+		jtcTH1Player m2sig_deta("deta_"+savename, j2.Nrow(), j2.Ncol() );
+        jtcTH1Player m2sig_side_deta("deta_side_"+savename, j2.Nrow(), j2.Ncol() );
+		for(int i=0; i<j2.Nrow(); ++i){
+                for(int j=0; j<j2.Ncol(); ++j){
+                        auto h = jtc_utility::projX(1, (TH2D*) j2.at(i,j), -1, .99, "");
+                        h->Scale(0.5);
+                        h->GetXaxis()->SetTitleSize(0.06);
+                        h->GetXaxis()->SetLabelSize(0.06);
+                        m2sig_deta.add(h, i, j);
+                        h = jtc_utility::projX(1, (TH2D*)  j2.at(i,j), 1.4, 1.8, "e");
+                        h->Scale(1./0.4);
+                        h->GetXaxis()->SetTitleSize(0.06);
+                        h->GetXaxis()->SetLabelSize(0.06);
+                        errorDrivenRange(h, -2.5, 2.5);
+                        m2sig_side_deta.add(h, i, j);
+                }
+        }
+		autoYrange = 1;
+        addhLine(0);
+        x1=-3; x2 = 2.99;
+		addm2TH1(&m2sig_side_deta);
+        addm2TH1(&m2sig_deta);
+        doSave=0;
+        return overlay(savename);
+}
+
 #endif

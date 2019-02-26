@@ -17,6 +17,7 @@ int main(){
 		//step2.dijetMCwf101();
 		//step2.Datawf101();
 		step2.bjetMCwf101();
+		//step2.jerMCwf101();
 		step2.evaluate();
 		/*
 		bjtcAnalyzer_Step3 step3(ps_all);
