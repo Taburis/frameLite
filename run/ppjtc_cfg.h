@@ -21,6 +21,7 @@ ParaSet makePSet_edmJtcDefault(){
 		ParaSet st("edmJtcAnalzyer_pset");
 		double jetptbin[] = {110, 120, 136, 152, 168, 184, 200, 216, 232, 248, 264, 280, 296, 312, 328, 344, 360, 380, 400, 432, 500};
 		//		cout<<"size is "<<sizeof(jetptbin)/sizeof(jetptbin[0])<<endl;
+		// this bin range has to cover the range [0, 2.5] as the 2.5 will be used to estimate the background
 		float drbin[] = {0.,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.45,0.6,0.8,1.,1.2, 1.5, 2, 2.5};
 		st.setPara<int>("ndr", 15);
 		//float drbin[] = {0.,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.45,0.6,0.8,1. };
@@ -40,6 +41,7 @@ ParaSet makePSet_edmJtcDefault(){
 
 ParaSet makePSet_bjtc_pp_step23(){
 		TString inputfolder = "/Users/tabris/cmsProjects/iJTC/dataSet/bJTC/pp_28Jan19/";
+		TString fbjetMC_origin = "bJTC_PYTHIA6_GenGen_5TeV_bjetMC_noGSPweight_WTAaxis_csvV2p9_18Feb19.root";
 		TString fbjetMC_rg = "bJTC_PYTHIA6_RecGen_5TeV_bjetMC_GSPweighted_WTAaxis_csvV2p9_28Jan19.root";
 		TString fbjetMC_gg = "bJTC_PYTHIA6_GenGen_5TeV_bjetMC_GSPweighted_WTAaxis_csvV2p9_28Jan19.root";
 		TString fbjetMC_rr = "bJTC_PYTHIA6_RecRec_5TeV_bjetMC_GSPweighted_WTAaxis_csvV2p9_28Jan19.root";
@@ -65,6 +67,7 @@ ParaSet makePSet_bjtc_pp_step23(){
 		st.setPara<TString>("dijetMC_step2input_rg_file", inputfolder+fdijetMC_rg);
 		st.setPara<TString>("dijetMC_step2input_gg_file", inputfolder+fdijetMC_gg);
 		st.setPara<TString>("dijetMC_step2input_rr_file", inputfolder+fdijetMC_rr);
+		st.setPara<TString>("bjetMC_step2input_gg_origin_file", inputfolder+fbjetMC_origin);
 		st.setPara<TString>("dijetMC_step2input_rg_gA_file", inputfolder+fdijetMC_rg_gA);
 		st.setPara<TString>("pp5TeVData_step2input_file", inputfolder+fdata);
 		st.setPara<TString>("dijetMC_step2output_name", "Signal_PYTHIA6_dijetSample_allJets");

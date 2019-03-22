@@ -18,7 +18,9 @@ class bjtcAnalyzer_Step2 : public rootEDMAnalyzer {
 				void datawf001(const char *input, const char *output_caption);
 				void bjetMCwf101();
 				void dijetMCwf101();
+				void PYTHIAwf101();
 				void Datawf101();
+				void Syswf101();
 				void testWf001();
 				void inclCalo_Wf001();
 				virtual int analyze();
@@ -194,6 +196,12 @@ void bjtcAnalyzer_Step2::Datawf101(){
 		auto output_name = ps->getPara<TString>("pp5TeVData_step2output_name");
 		datawf001(input_file, output_name);
 }
+void bjtcAnalyzer_Step2::PYTHIAwf101(){
+		TString output_name = "Signal_PYTHIA6_bjetSample_noGPS_GenJet_GenTrack.root";
+		TString input_file;
+		input_file = ps->getPara<TString>("bjetMC_step2input_gg_origin_file");
+		wf001("bjetMCOrigin_",input_file, output_name, 1, 1);
+}
 void bjtcAnalyzer_Step2::jerMCwf101(){
 		auto input_file = ps->getPara<TString>("dijetMC_step2input_rg_gA_file");
 		auto output_name = ps->getPara<TString>("dijetMC_step2output_name");
@@ -215,6 +223,13 @@ void bjtcAnalyzer_Step2::bjetMCwf101(){
 		wf001("bjetMC_",input_file, output_name, 1, 1);
 		input_file = ps->getPara<TString>("bjetMC_step2input_rr_file");
 		wf001("bjetMC_",input_file, output_name, 0, 0);
+}
+
+void bjtcAnalyzer_Step2::Syswf101(){
+		TString output_name ="Signal_PYTHIA6_bjetSample_JER";
+		TString input_file;
+		input_file = "/Users/tabris/cmsProjects/iJTC/dataSet/bJTC/pp_28Jan19/bJTC_PYTHIA6_RecoGen_5TeV_bjetMC_GSPweight_WTAaxis_JER15_csvV2p9_14Mar19.root";
+		wf001("bjetJER_",input_file, output_name, 0, 1);
 }
 
 void bjtcAnalyzer_Step2::dijetMCwf101(){
