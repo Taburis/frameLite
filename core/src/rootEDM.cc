@@ -9,6 +9,10 @@ TFile* rootEDMFrame::open(const char * f){
 		return _infile;
 }
 
+void rootEDMFrame::close(){
+		_infile->Close();
+}
+
 TTree* rootEDMFrame::regTree(const char* tn){
 //		do not to use the add friend in case two branchs in different trees have the same name
 		if(_forest.find(tn) == _forest.end()){

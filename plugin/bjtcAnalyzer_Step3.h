@@ -908,7 +908,7 @@ void bjtcAnalyzer_Step3::ending_plots(){
 //		gQA->addm2TH1(ratio_mc_all_err, "ce5");
 		gQA->addm2TH1(ratio_mc0_all);
 		gQA->addm2TH1Error(ratio_mc0_all_err);
-		gQA->bookLegend(0.6, 0.6, 0.9, 0.8);
+		gQA->bookLegend(0.55, 0.55, 0.9, 0.83);
 		gQA->addLegendEntry("Data", 0);
 		gQA->addLegendEntry("PYTHIA6(GSP weighted)", 1);
 		gQA->addLegendEntry("PYTHIA6", 2);
@@ -917,7 +917,20 @@ void bjtcAnalyzer_Step3::ending_plots(){
 		gQA->setXrange(.0, .99);
 		gQA->setLowerYrange(.5, 2.);
 		bjtc_pp_config::ptString[0]= "p^{track}_{T} > 1 GeV";
+		gQA->Ytitle = "R(#Delta r)";
 		gAnaIO.saveCanvas(gQA->overlay(), "integratedJSRatio");
+
+
+		gQA->autoYrange = 1;
+		gQA->fixYrange = 0;
+		gQA->addm2TH1(dr_data_b_all);
+		gQA->addm2TH1Error(dr_data_b_err);
+		gQA->addm2TH1(dr_data_d_all);
+		gQA->addm2TH1Error(dr_data_d_err);
+		gQA->bookLegend(0.6, 0.6, 0.9, 0.8);
+		gQA->addLegendEntry("b-jet", 0);
+		gQA->addLegendEntry("incl. jet", 1);
+		gAnaIO.saveCanvas(gQA->overlay(), "integratedJS");
 	
 		auto ym2_mc_d= new jtcTH1Player("signal_inclJet_GenJet_GenTrack_noCorr", npt, ncent);
 		auto ym2_mc_b= new jtcTH1Player("signal_trueBJet_GenJet_GenTrack_noCorr", npt, ncent);

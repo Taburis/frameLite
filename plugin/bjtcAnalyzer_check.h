@@ -1,6 +1,9 @@
 
 #include "bjtcAnalyzer_base.h"
 
+int ndetabin = 74;
+Double_t  detabin[] = {-1.520000,-1.480000,-1.440000,-1.400000,-1.360000,-1.320000,-1.280000,-1.240000,-1.200000,-1.160000,-1.120000,-1.080000,-1.040000,-1.000000,-0.960000,-0.920000,-0.880000,-0.840000,-0.800000,-0.760000,-0.720000,-0.680000,-0.640000,-0.600000,-0.560000,-0.520000,-0.480000,-0.440000,-0.400000,-0.360000,-0.320000,-0.280000,-0.240000,-0.200000,-0.160000,-0.120000,-0.080000,-0.040000,0.040000,0.080000,0.120000,0.160000,0.200000,0.240000,0.280000,0.320000,0.360000,0.400000,0.440000,0.480000,0.520000,0.560000,0.600000,0.640000,0.680000,0.720000,0.760000,0.800000,0.840000,0.880000,0.920000,0.960000,1.000000,1.040000,1.080000,1.120000,1.160000,1.200000,1.240000,1.280000,1.320000,1.360000,1.400000,1.440000,1.480000, 1.52};
+
 class bjtcAnalyzer_check : public bjtcAnalyzer_base{
 		public : bjtcAnalyzer_check(ParaSet & pset) : bjtcAnalyzer_base(pset){};
 				 void data_produce_refMC();
@@ -14,6 +17,9 @@ class bjtcAnalyzer_check : public bjtcAnalyzer_base{
 				 void contCorr_check();
 				 void js_check();
 				 void yield_check();
+				 void trackingCorr();
+				 void residualCorr();
+		public : 
 };
 
 void bjtcAnalyzer_check::ratio_ckpt(TString name, jtcTH1Player *j1, jtcTH1Player *j2, TString leg1, TString leg2){
@@ -186,8 +192,6 @@ void bjtcAnalyzer_check::side_band_mixing(){
 		auto data_signal = new jtcTH1Player("dr_signal_inclJet_Data_pTweighted_noCorr");
 		data_signal->autoLoad(fdata);
 
-
-
 		auto mc_gg_prox = mc_gg->projX("prox", 1.4, 1.8, "e", 1);
 //		auto mc_me_prox = mc_gg_me->projX("me_prox", 1.4, 1.8, "e", 1);
 //		gQA->addm2TH1(mc_gg_prox);
@@ -298,6 +302,17 @@ void bjtcAnalyzer_check::contCorr_check(){
 //		gQA->addhLine(0);
 		gAnaIO.saveCanvas(gQA->overlay(), "contTemp_projEta");
 		
+		auto j2_in_dr = new jtcTH1Player("dr_signal_inclJet_GenJet_GenTrack_pTweighted_noCorr");
+		auto j2_co_dr = new jtcTH1Player("dr_signal_contJet_GenJet_GenTrack_pTweighted_noCorr");
+		//auto j2_in_dr = new jtcTH1Player("dr_mix_seagull_corrected_inclJet_GenJet_GenTrack_pTweighted_noCorr");
+		//auto j2_co_dr = new jtcTH1Player("dr_mix_seagull_corrected_contJet_GenJet_GenTrack_pTweighted_noCorr");
+		j2_in_dr->autoLoad(fdMC_gg);
+		j2_co_dr->autoLoad(fdMC_gg);
+//		j2_in_dr->smooth();
+//		j2_co_dr->smooth();
+		gQA->addm2TH1Pair(j2_in_dr, j2_co_dr);
+		gQA->setXrange(0, .99);
+		gAnaIO.saveCanvas(gQA->overlayR(), "contTemp_dr2");
 }
 
 void bjtcAnalyzer_check::yield_check(){
@@ -307,8 +322,10 @@ void bjtcAnalyzer_check::yield_check(){
 		auto j2_in = new jtcTH1Player("dijtc_yield_step3");
 		j2_tg->autoLoad(bfinal);
 		j2_in->autoLoad(dfinal);
-		auto deta_tg = j2_tg->projX("deta_bjtc_yield", -1, 1, "e", 1);
-		auto deta_in = j2_in->projX("deta_incl_yield", -1, 1, "e", 1);
+		auto deta_tg0 = j2_tg->projX("deta_bjtc_yield0", -1, 1, "e", 0);
+		auto deta_in0 = j2_in->projX("deta_incl_yield0", -1, 1, "e", 0);
+		auto deta_tg = deta_tg0->rebin("deta_bjtc_yield", ndetabin, detabin);
+		auto deta_in = deta_in0->rebin("deta_incl_yield", ndetabin, detabin);
 		deta_tg->setAxisRange(-1, 1, "X");
 		deta_in->setAxisRange(-1, 1, "X");
 		auto data_in = new jtcTH1Player("dr_signal_dijtc_yield_step3");
@@ -360,8 +377,10 @@ void bjtcAnalyzer_check::js_check(){
 		auto j2_in = new jtcTH1Player("dijtc_jetShape_step3");
 		j2_tg->autoLoad(bfinal);
 		j2_in->autoLoad(dfinal);
-		auto deta_tg = j2_tg->projX("deta_bjtc_js", -1, 1, "e", 1);
-		auto deta_in = j2_in->projX("deta_incl_js", -1, 1, "e", 1);
+		auto deta_tg0 = (jtcTH1Player*) j2_tg->projX("deta_bjtc_js0", -1, 1, "e", 0);
+		auto deta_in0 = (jtcTH1Player*) j2_in->projX("deta_incl_js0", -1, 1, "e", 0);
+		auto deta_tg = deta_tg0->rebin("deta_bjtc_js", ndetabin, detabin);
+		auto deta_in = deta_in0->rebin("deta_incl_js", ndetabin, detabin);
 		deta_tg->setAxisRange(-1, 1, "X");
 		deta_in->setAxisRange(-1, 1, "X");
 
@@ -375,4 +394,31 @@ void bjtcAnalyzer_check::js_check(){
 		gQA->fixYrange = 0;
 		gQA->addhLine(0);
 		gAnaIO.saveCanvas(gQA->overlay(), "js_deta");
+}
+
+void bjtcAnalyzer_check::trackingCorr(){
+		auto bfinal = TFile::Open("/Users/tabris/frameLite/output/step3/bjtc_correction.root");
+		auto j2_trk = new jtcTH1Player("bjtc_yield_trkCorr");
+		j2_trk->autoLoad(bfinal);
+		auto j2_err = (jtcTH1Player*) j2_trk->clone("j2_err");
+		j2_err->absError(.04);
+		gQA->addm2TH1(j2_trk);
+		gQA->addm2TH1Error(j2_err);
+		gQA->addhLine(1);
+		gQA->setXrange(0, .99);
+		gAnaIO.saveCanvas(gQA->overlay(), "trkCorr");
+}
+
+void bjtcAnalyzer_check::residualCorr(){
+		auto bfinal = TFile::Open("/Users/tabris/frameLite/output/step3/bjtc_correction.root");
+		auto j2_corr = new jtcTH1Player("bjtc_yield_jff");
+		j2_corr->autoLoad(bfinal);
+		auto j2_err = (jtcTH1Player*) j2_corr->clone("j2_err");
+		j2_err->absError(.05);
+		gQA->addm2TH1(j2_corr);
+		gQA->addm2TH1Error(j2_err);
+		gQA->addhLine(1);
+		gQA->setXrange(0, .99);
+		gQA->setYrange(0.6, 1.4);
+		gAnaIO.saveCanvas(gQA->overlay(), "jffCorr");
 }

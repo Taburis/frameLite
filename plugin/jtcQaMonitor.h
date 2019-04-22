@@ -27,6 +27,7 @@ class jtcQaMonitor{
 				 multi_canvas<TH1>* overlayR(TString savename = "Ra", TString opt = "");
 				 multi_canvas<TH1>* drawBkgErrorCheck(TString savenname = "");
 				 multi_canvas<TH1>* jtc_check001(jtcTH1Player&, TString savename = "");
+				 void prepareCanvas(jtcTH1Player*, TString savename = "");
 				 void flash(){
 						 if(needDelete)for(auto &it : vm2pair){
 								 //								 it.first->cleanAll();
@@ -74,6 +75,7 @@ class jtcQaMonitor{
 						 h->SetMarkerStyle(20);
 						 h->SetMarkerSize(0.8);
 						 h->SetMarkerColor(color);
+						 h->GetYaxis()->SetTitle(Ytitle);
 				 }
 				 void style0_for_systError(TH1*h, Color_t color){
 						 h->SetFillStyle(1001);
@@ -140,10 +142,15 @@ class jtcQaMonitor{
 						 bx1 = x1; bx2 = x2; by1 = y1, by2 = y2;
 						 drawBox_pad2=1;
 				 }
+				 void cd(int i, int j){
+						 auto index = pad_map(i,j);
+						 ((multi_canvas<TH1> *) cCanvas)->CD(index.i1, index.i2);
+				 }
 
 		public :// ParaSet * ps;
 				 jtc_utility::index2d (*pad_map) (int, int) = nullptr;
 				 TString (*pad_title) (int, int) = nullptr;
+				 TString Ytitle = "";
 
 				 // config to plot
 				 float x1 = 1, x2 = -1;
@@ -171,7 +178,14 @@ class jtcQaMonitor{
 				 TBox box;
 				 TLatex tx;  
 				 TLegend* tleg = nullptr;  
+				 TCanvas *cCanvas = nullptr; 
 };
+
+void jtcQaMonitor::prepareCanvas(jtcTH1Player* j2, TString savename = ""){
+		auto cm = new multi_canvas<TH1>("c_"+savename, "", nrow, ncol);
+		cCanvas = cm;
+		return ;
+}
 
 multi_canvas<TH1>* jtcQaMonitor::overlay(TString savename, bool drawShape){
 		//va_list ap;
@@ -238,8 +252,7 @@ multi_canvas<TH1>* jtcQaMonitor::overlay(TString savename, bool drawShape){
 								if(drawShape)m2th->at(i,j)->DrawNormalized(dopt+"same");
 								else m2th->at(i,j)->Draw(dopt+" same");
 								if(doSystError){
-										style0_for_systError(m2the->at(i,j), color_vec[k]);						
-										m2the->at(i,j)->Draw("same e2");
+										style0_for_systError(m2the->at(i,j), color_vec[k]);						m2the->at(i,j)->Draw("same e2");
 								}
 								if(makeTitle)  tx.DrawLatexNDC(xtitle, ytitle, pad_title(i,j));
 								if(i+j==0) drawLegend();
