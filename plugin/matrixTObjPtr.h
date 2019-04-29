@@ -74,12 +74,16 @@ class matrixTObjPtr : public matrixPtrHolder<T>{
 						return m2;
 				}
 				void setup(const char* _name, int n, int m){name = _name, matrixPtrHolder<T>::setup(n,m);};
-				void autoLoad(TFile* f){
+				void autoLoad(TFile* f, TString path = ""){
+						TString name0 = name;
 						for(int j=0; j<matrixPtrHolder<T>::ncol; ++j){
 								for(int i=0; i<matrixPtrHolder<T>::nrow; i++){
-										auto hn = name+"_"+i+"_"+j;
+										auto hn = name0.ReplaceAll("*", "%d");
+										hn = Form(hn, i,j);
+										std::cout<<"loading: "<<hn<<std::endl;
+										//auto hn = name+"_"+i+"_"+j;
 										//std::cout<<"adding "+hn<<std::endl;
-										auto ptr = (T*) f->Get(hn);
+										auto ptr = (T*) f->Get(path+hn);
 										TString hname = ptr->GetName();
 										std::cout<<"adding "+hname<<std::endl;
 										this->add(ptr, i,j);

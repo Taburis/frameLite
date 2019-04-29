@@ -492,7 +492,7 @@ multi_canvas<TH1>* jtcQaMonitor::jtc_check001(jtcTH1Player& j2, TString savename
         jtcTH1Player m2sig_side_deta("deta_side_"+savename, j2.Nrow(), j2.Ncol() );
 		for(int i=0; i<j2.Nrow(); ++i){
                 for(int j=0; j<j2.Ncol(); ++j){
-                        auto h = jtc_utility::projX(1, (TH2D*) j2.at(i,j), -1, .99, "");
+                        auto h = jtc_utility::projX(1, (TH2D*) j2.at(i,j), -1, .99, "e");
                         h->Scale(0.5);
                         h->GetXaxis()->SetTitleSize(0.06);
                         h->GetXaxis()->SetLabelSize(0.06);

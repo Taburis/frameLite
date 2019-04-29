@@ -38,7 +38,7 @@ class edmMCBase : public rootEDMProducer{
 				 }
 				 virtual void handleGenParticle(const char * name);
 				 virtual void handleRecoTrack (const char * name);
-				 jetSet* handleJetSet(const char* name, bool keep = 0){
+				 virtual jetSet* handleJetSet(const char* name, bool keep = 0){
 						 auto tt= handle(name);
 						 _js[std::string(name)] = new jetSet(name, tt, keep);
 						 return _js[std::string(name)];

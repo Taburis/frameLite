@@ -73,6 +73,7 @@ namespace jtc_utility {
 				for(int i=binLeft;i<binRight; i++){
 						mean += temp->GetBinContent(i);
 				}
+//				mean = temp->GetMaximum()/mix->GetNbinsY();
 				mean = mean /(temp->FindBin(midRight)-temp->FindBin(midLeft)+1)/mix->GetNbinsY();
 				temp->Scale(1.0/mean);
 				if(doSmooth){
@@ -83,8 +84,8 @@ namespace jtc_utility {
 												ME->SetBinError(ix, iy, 0);
 										}
 										else{
-												ME->SetBinContent(ix, iy, temp->GetBinContent(ix)/mix->GetNbinsY());
-												ME->SetBinError(ix, iy, temp->GetBinError(ix)/sqrt(mix->GetNbinsY()));
+									  		ME->SetBinContent(ix, iy, temp->GetBinContent(ix)/mix->GetNbinsY());
+									  		ME->SetBinError(ix, iy, temp->GetBinError(ix)/sqrt(mix->GetNbinsY()));
 										}
 								}
 						}
@@ -348,10 +349,10 @@ namespace jtc_utility {
 										ME->SetBinError(ix, iy, 0);
 								}
 								else{
-										ME->SetBinContent(ix, iy, bincontent);
-										ME->SetBinError(ix, iy, binerror);
-										//ME->SetBinContent(ix, iy, bincontent/dbin);
-										//ME->SetBinError(ix, iy, binerror/sqrt(dbin));
+								  	ME->SetBinContent(ix, iy, bincontent);
+								  	ME->SetBinError(ix, iy, binerror);
+								  	//ME->SetBinContent(ix, iy, bincontent/dbin);
+								  	//ME->SetBinError(ix, iy, binerror/sqrt(dbin));
 								}
 						}
 				}
@@ -429,6 +430,29 @@ namespace jtc_utility {
 								h->SetBinError(i,j, 0);
 						}
 				}
+		}
+
+
+		TH2D* rotate2D(TString name, TH2D* h0){
+				//auto xax = h0->GetXaxis()->GetXbins();
+				//auto yax = h0->GetYaxis()->GetXbins();
+				//Double_t * newx = new Double_t[yax->GetSize()];
+				//Double_t * newy = new Double_t[xax->GetSize()];
+				//cout<<"size: "<<yax->GetSize()<<endl;
+				//for(int i = 0; i<yax->GetSize(); ++i) newx[i] = yax->At(i);
+				//for(int i = 0; i<xax->GetSize(); ++i) newy[i] = xax->At(i);
+				//auto h = new TH2D(name, "", yax->GetSize(), newx, xax->GetSize(), newy);
+				auto h = new TH2D(name, "", 500, -5, 5, 200, -TMath::Pi()/2, 3*TMath::Pi()/2);
+
+				for(int i=1; i<h0->GetNbinsX()+1; ++i){
+						for(int j=1; j<h0->GetNbinsY()+1; ++j){
+								Double_t cont = h0->GetBinContent(i,j);
+								Double_t err = h0->GetBinError(i,j);
+								h->SetBinContent(j,i, cont);
+								h->SetBinError(j,i, err);
+						}
+				}
+				return h;
 		}
 }
 
