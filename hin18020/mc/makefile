@@ -13,7 +13,7 @@ LPATH =$(FBASE)/lib/
 INCLUDE= -I $(FBASE)/plugin/ -I $(FBASE)/core/interface/
 INCLUDE=-I/Users/tabris/frameLite/plugin -I/Users/tabris/frameLite/core/interface
 PYTHIA8PATH=/Applications/physPlayGround/pythia8235
-MOREPYTHIA8=-I$(PYTHIA8PATH)/include -O2 -pedantic -W -Wall -Wshadow -L$(PYTHIA8PATH)/lib -Wl,-rpath,$(PYTHIA8PATH)/lib -lpythia8 -ldl
+MOREPYTHIA8=-I$(PYTHIA8PATH)/include -O3 -pedantic -W -Wall -Wshadow -L$(PYTHIA8PATH)/lib -Wl,-rpath,$(PYTHIA8PATH)/lib -lpythia8 -ldl
 
 FASTJETPATH = /Applications/physPlayGround/fastjet-install
 FASTJET=$(shell $(FASTJETPATH)/bin/fastjet-config --cxxflags --libs --plugins)
@@ -34,4 +34,5 @@ $(BINS): $(OBJS) $(FBASE)/lib/libedm.so
 .PHONY: clean
 
 clean:
+	@echo $(shell $(FASTJETPATH)/bin/fastjet-config)
 	rm -rf *.o *.*~ ../plugin/*.*~

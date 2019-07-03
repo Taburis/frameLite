@@ -45,7 +45,7 @@ class edmMCBase : public rootEDMProducer{
 				 }
 		public :
 				 TTree* gen_particle_t;
-				 float weight =0;
+				 double weight =0;
 				 float pthat =0;
 				 std::vector<float> *pt=0;
 				 std::vector<float> *eta=0;

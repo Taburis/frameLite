@@ -50,10 +50,11 @@ edmJtcAnalyzer * bjtcAnalyzer_Step2::initAnalyzer(const char* name){
 		an->open(infile);
 		an->doQA = doQA;
 		an->saveFile=doSave;
+		TString sformat = +"_*_*";
 		an->output =output_folder+outputname;
 		an->dataset_name =name;
-		an->sig_name = sig_name+"_noCorr";
-		an->mix_name = mix_name+"_noCorr";
+		an->sig_name = sig_name+"_noCorr"+sformat;
+		an->mix_name = mix_name+"_noCorr"+sformat;
 		an->norm_name = norm_name;
 		an->outputOpt = openOpt;
 		an->doSeagullCorr = doSeagullCorr;

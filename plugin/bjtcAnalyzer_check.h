@@ -19,7 +19,8 @@ class bjtcAnalyzer_check : public bjtcAnalyzer_base{
 				 void yield_check();
 				 void trackingCorr();
 				 void residualCorr();
-		public : 
+				 void newAndOldPurity();
+				 //		public : 
 };
 
 void bjtcAnalyzer_check::ratio_ckpt(TString name, jtcTH1Player *j1, jtcTH1Player *j2, TString leg1, TString leg2){
@@ -33,13 +34,13 @@ void bjtcAnalyzer_check::ratio_ckpt(TString name, jtcTH1Player *j1, jtcTH1Player
 
 void bjtcAnalyzer_check::make_cont_corr(jtcTH1Player* j2){
 		for(int j=0; j<j2->Ncol(); ++j){
-                for(int i=0; i<j2->Nrow(); i++){
+				for(int i=0; i<j2->Nrow(); i++){
 						auto h = j2->at(i,j);
 						for(auto k=1; k<h->GetNbinsX()+1; k++){
 								if(h->GetXaxis()->GetBinCenter(k)>0.45) h->SetBinContent(k,1);
 						}
-                }
-        }
+				}
+		}
 }
 
 void bjtcAnalyzer_check::an_cont_corr(){
@@ -52,7 +53,7 @@ void bjtcAnalyzer_check::an_cont_corr(){
 		m2j_in_gg->autoLoad(fdMC_gg);
 		m2j_co_gg->autoLoad(fdMC_gg);
 		auto ratio = (*m2j_co_gg)%(*m2j_in_gg);
-//		ratio->setAxisRange(.06, .99, "X");
+		//		ratio->setAxisRange(.06, .99, "X");
 		auto ratio2 = (jtcTH1Player*) ratio->clone("ratio2");
 		ratio2->at(3, 0 ) ->SetAxisRange(0.051, .99, "X");
 		ratio2->smooth(1, "R");
@@ -60,7 +61,7 @@ void bjtcAnalyzer_check::an_cont_corr(){
 		ratio2->doChi2Test((jtcTH1Player*) ratio, "CHI2/NDF");
 		make_cont_corr(ratio2);
 		cocorr->autoLoad(fcorr);
-//		gQA->addm2TH1(cocorr);
+		//		gQA->addm2TH1(cocorr);
 		gQA->addm2TH1(ratio2, "hist");
 		gQA->addm2TH1(ratio);
 
@@ -178,7 +179,7 @@ void bjtcAnalyzer_check::side_band_mixing(){
 		data_step1->ring_corr(jff, 2.5);	
 		auto data_sig_m2 = data_step1->bkgSub("inclJet_data_final_signal", 1.5, 2.5);
 		auto dr_data_sig = data_sig_m2->drIntegral("dr_inclJet_data_signal", ndrbin, drbins);
-		
+
 		auto mc_gg_sig2 = mc_gg_step1->bkgSub("inclJet_gg_signal", 1.5, 2.5);
 		auto dr_gg_sig2 = mc_gg_sig2->drIntegral("inclJet_dr_gg_signal", ndrbin, drbins);
 
@@ -193,14 +194,14 @@ void bjtcAnalyzer_check::side_band_mixing(){
 		data_signal->autoLoad(fdata);
 
 		auto mc_gg_prox = mc_gg->projX("prox", 1.4, 1.8, "e", 1);
-//		auto mc_me_prox = mc_gg_me->projX("me_prox", 1.4, 1.8, "e", 1);
-//		gQA->addm2TH1(mc_gg_prox);
-//		gQA->addm2TH1(mc_me_prox);
-//		gQA->bookLegend();
-//		gQA->setXrange(-2.5, 2.499);
-//		gQA->addLegendEntry("true band", 0);
-//		gQA->addLegendEntry("ME", 1);
-//		gQA->overlay();
+		//		auto mc_me_prox = mc_gg_me->projX("me_prox", 1.4, 1.8, "e", 1);
+		//		gQA->addm2TH1(mc_gg_prox);
+		//		gQA->addm2TH1(mc_me_prox);
+		//		gQA->bookLegend();
+		//		gQA->setXrange(-2.5, 2.499);
+		//		gQA->addLegendEntry("true band", 0);
+		//		gQA->addLegendEntry("ME", 1);
+		//		gQA->overlay();
 
 		gAnaIO.saveCanvas(gQA->jtc_check001(*mc_gg_sig2), "incl_gg_check001");
 		auto dr_gg_sig1 = mc_gg_step1->drIntegral("inclJet_dr_gg_step1", ndrbin, drbins);
@@ -233,7 +234,7 @@ void bjtcAnalyzer_check::side_band_mixing(){
 		gQA->setLowerYrange(.5, 2.);
 		bjtc_pp_config::ptString[0]= "p^{track}_{T} > 1 GeV";
 		gAnaIO.saveCanvas(gQA->overlayR(), "integratedJS");
-		
+
 }
 
 void bjtcAnalyzer_check::plots(){
@@ -299,17 +300,17 @@ void bjtcAnalyzer_check::contCorr_check(){
 		gQA->addLegendEntry("cont.", 0);
 		gQA->addLegendEntry("incl.", 1);
 		gQA->setXrange(-1, .99);
-//		gQA->addhLine(0);
+		//		gQA->addhLine(0);
 		gAnaIO.saveCanvas(gQA->overlay(), "contTemp_projEta");
-		
+
 		auto j2_in_dr = new jtcTH1Player("dr_signal_inclJet_GenJet_GenTrack_pTweighted_noCorr");
 		auto j2_co_dr = new jtcTH1Player("dr_signal_contJet_GenJet_GenTrack_pTweighted_noCorr");
 		//auto j2_in_dr = new jtcTH1Player("dr_mix_seagull_corrected_inclJet_GenJet_GenTrack_pTweighted_noCorr");
 		//auto j2_co_dr = new jtcTH1Player("dr_mix_seagull_corrected_contJet_GenJet_GenTrack_pTweighted_noCorr");
 		j2_in_dr->autoLoad(fdMC_gg);
 		j2_co_dr->autoLoad(fdMC_gg);
-//		j2_in_dr->smooth();
-//		j2_co_dr->smooth();
+		//		j2_in_dr->smooth();
+		//		j2_co_dr->smooth();
 		gQA->addm2TH1Pair(j2_in_dr, j2_co_dr);
 		gQA->setXrange(0, .99);
 		gAnaIO.saveCanvas(gQA->overlayR(), "contTemp_dr2");
@@ -338,7 +339,7 @@ void bjtcAnalyzer_check::yield_check(){
 		gQA->setYrange(-5, 5);
 		gQA->addhLine(0);
 		gAnaIO.saveCanvas(gQA->overlay(), "yield_diff");
-		
+
 		gQA->addm2TH1(deta_tg);
 		gQA->addm2TH1(deta_in);
 		gQA->bookLegend(0.65, 0.6, 0.925, 0.8);
@@ -422,3 +423,46 @@ void bjtcAnalyzer_check::residualCorr(){
 		gQA->setYrange(0.6, 1.4);
 		gAnaIO.saveCanvas(gQA->overlay(), "jffCorr");
 }
+
+void bjtcAnalyzer_check::newAndOldPurity(){
+		TString folder0 = "/Users/tabris/frameLite/output/step3/";
+		TString folder1 = "/Users/tabris/frameLite/output/step3_p66/";
+		auto f0 = TFile::Open(folder0+"bjtc_data_final.root");
+		auto f1 = TFile::Open(folder1+"bjtc_data_final.root");
+		auto data0 = new jtcTH1Player("dr_signal_bjtc_jetShape_step3_*_*");
+		auto data1 = new jtcTH1Player("dr_signal_bjtc_jetShape_step3_*_*");
+		auto err0  = new jtcTH1Player("dr_bjtc_jetShape_systError_*_*", npt, ncent);
+		auto err1  = new jtcTH1Player("dr_bjtc_jetShape_systError_*_*", npt, ncent);
+		err0->autoLoad(f0);
+		err1->autoLoad(f1);
+		data0->autoLoad(f0);
+		data1->autoLoad(f1);
+		err0->add_frac_error(0.05);
+		err1->add_frac_error(0.05);
+		auto da0 = data0->contractX("dr_data0");
+		auto da1 = data1->contractX("dr_data1");
+		auto er0 = err0->contractX("dr_error0");
+		auto er1 = err1->contractX("dr_error1");
+
+//		gQA->addm2TH1(da0);
+//		gQA->addm2TH1Error(er0);
+//		gQA->addm2TH1(da1);
+//		gQA->addm2TH1Error(er1);
+		gQA->addm2TH1Pair(da0, da1);
+		gQA->addm2TH1ErrorPair(er0, er1);
+		 gQA->bookLegend(0.55, 0.55, 0.9, 0.83);
+		 gQA->setLowerYrange(0.85, 1.15);
+        gQA->addLegendPair("misid.=0.3", "misid.=0.37", 0 );
+		gQA->addRLine(1);
+//        gQA->addLegendEntry("P=0.7", 0);
+//        gQA->addLegendEntry("P=0.65", 1);
+        gQA->ncol = 1;
+        gQA->nrow = 1;
+        gQA->setXrange(.0, .99);
+        bjtc_pp_config::ptString[0]= "p^{track}_{T} > 1 GeV";
+        gQA->Ytitle = "R(#Delta r)";
+        gAnaIO.saveCanvas(gQA->overlayR(), "purity_overlay");
+
+}
+
+

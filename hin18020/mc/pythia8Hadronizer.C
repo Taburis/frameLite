@@ -60,6 +60,8 @@ int main(int argc, char * argv[]){
 		pythia.readString("TimeShower:pTmaxMatch = 2");
 
 		pythia.init();
+		//std::cout<<std::ios_base::failbit;
+		//std::cout.clear();
 
 		int iAbort = 0;
 		long nevt = 0;
@@ -73,8 +75,8 @@ int main(int argc, char * argv[]){
 
 		std::vector<fastjet::PseudoJet> pfcands;
 		reClusterJetSet* rjset = new reClusterJetSet("ak4ES_WTAJet", fastjet::antikt_algorithm, 0.4, fastjet::E_scheme, pfcands);
-		rjset->reclusterSetup(fastjet::antikt_algorithm, 0.8, fastjet::WTA_pt_scheme);
-		rjset->makeTree(0, 110, 1.6);
+		rjset->reclusterSetup(fastjet::antikt_algorithm, 1, fastjet::WTA_pt_scheme);
+		rjset->makeTree(0, 80, 1.6);
 
 
 
@@ -92,16 +94,18 @@ int main(int argc, char * argv[]){
 				for (int i = 0; i < pythia.event.size(); ++i){
 						if(!pythia.event[i].isFinal()){
 								if(fabs(pythia.event[i].id()) < 6 || fabs(pythia.event[i].id()) == 21){
-										gp.addParton(pythia.event[i].pT(), pythia.event[i].eta(), pythia.event[i].phi(), pythia.event[i].id());
+										gp.addParton(pythia.event[i].pT(), pythia.event[i].eta(), pythia.event[i].phi(), pythia.event[i].id(), pythia.event[i].status());
 								}
-								continue;
-						}
+						//		continue;
+						} else {
 
-						if(pythia.event[i].pT() < 1) continue;
-						if(fabs(pythia.event[i].eta()) > 2.4) continue;
-						if(fabs(pythia.event[i].charge()) == 0) continue;
+								if(pythia.event[i].pT() < 1) continue;
+								if(fabs(pythia.event[i].eta()) > 2.4) continue;
+								//if(fabs(pythia.event[i].charge()) == 0) continue;
 
-						if(pythia.event[i].isFinal()){
+								if(fabs(pythia.event[i].id()) == 12) continue;
+								if(fabs(pythia.event[i].id()) == 14) continue;
+								if(fabs(pythia.event[i].id()) == 16) continue;
 								gp.addParticle(pythia.event[i].pT(), pythia.event[i].eta(), pythia.event[i].phi(), pythia.event[i].charge());
 								pfcands.push_back(fastjet::PseudoJet(pythia.event[i].px(), pythia.event[i].py(),pythia.event[i].pz(),pythia.event[i].e()));
 						}

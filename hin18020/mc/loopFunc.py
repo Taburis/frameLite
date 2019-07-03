@@ -25,12 +25,12 @@ def haddmerge():
     cmdline.append(outputname+"*"+otype)
     print(cmdline)
     subprocess.call(cmdline)
-    cmdline = ["rm", "-f", outputname+"*"+otype]
-    print(cmdline)
-    subprocess.call(cmdline)
+    #cmdline = ["rm", "-f", outputname+"*"+otype]
+    #print(cmdline)
+    #subprocess.call(cmdline)
 
 if __name__ == "__main__" :
-    istest = 1
+    istest = 0
     with open(filelist) as f:
        path = f.readlines()
        n = 0
@@ -40,6 +40,7 @@ if __name__ == "__main__" :
            arg = []
            arg.append(p.rstrip())
            arg.append(oname)
+       #    if n < 14 : continue
            callfunc(func_name, arg)
            n+=1
     haddmerge()

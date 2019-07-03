@@ -4,6 +4,7 @@
 #include <iostream>
 #include "TH2.h"
 #include "TH2D.h"
+#include "TF1.h"
 #include "TH1D.h"
 #include "TString.h"
 #include "TMath.h"

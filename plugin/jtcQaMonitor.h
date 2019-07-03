@@ -26,6 +26,7 @@ class jtcQaMonitor{
 				 multi_canvas<TH1>* overlay(TString savename = "", bool drawShape = 0);
 				 multi_canvas<TH1>* overlayR(TString savename = "Ra", TString opt = "");
 				 multi_canvas<TH1>* drawBkgErrorCheck(TString savenname = "");
+				 //check for bkg and the seagull:
 				 multi_canvas<TH1>* jtc_check001(jtcTH1Player&, TString savename = "");
 				 void prepareCanvas(jtcTH1Player*, TString savename = "");
 				 void flash(){
@@ -181,7 +182,7 @@ class jtcQaMonitor{
 				 TCanvas *cCanvas = nullptr; 
 };
 
-void jtcQaMonitor::prepareCanvas(jtcTH1Player* j2, TString savename = ""){
+void jtcQaMonitor::prepareCanvas(jtcTH1Player* j2, TString savename){
 		auto cm = new multi_canvas<TH1>("c_"+savename, "", nrow, ncol);
 		cCanvas = cm;
 		return ;

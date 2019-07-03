@@ -70,8 +70,8 @@ class reClusterJetSet : public jetSet{
 								 jets.clear();
 								 delete cs2;
 						 }
-						 flushSet();
 						 jets0.clear();
+						 flushSet();
 						 delete cs;
 				 }
 

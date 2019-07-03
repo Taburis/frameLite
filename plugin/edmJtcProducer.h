@@ -17,7 +17,7 @@ class edmJtcProducer: public edmMCBase{
 		public : 
 				struct histCase{
 						jetSet * set;
-						float weight = 0;
+						double weight = 0;
 						// current jet axis 
 						float jtpt, jteta, jtphi;
 						// current particle axis 
@@ -67,12 +67,12 @@ class edmJtcProducer: public edmMCBase{
 				}
 				bool jetAcceptanceCut(histCase &hc){
 						if(hc.jtpt<120) return 1;
-						if(fabs(hc.jteta)>2) return 1;
+						if(fabs(hc.jteta)>1.6) return 1;
 						return 0;
 				}
 				bool particleAcceptanceCut(histCase &hc){
 						if(hc.ppt<1) return 1;
-						if(fabs(hc.jteta)>2.4) return 1;
+						if(fabs(hc.peta)>2.4) return 1;
 						return 0;
 				}
 

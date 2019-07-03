@@ -10,19 +10,20 @@ class genParticle {
 				void clear();
 				void addParticle(float pt, float eta, float phi, int chg);
 				void addEvtInfo(double iweight, float ipthat){weight = iweight; ipthat = pthat;};
-				void addParton(float pt, float eta, float phi, int id){
+				void addParton(float pt, float eta, float phi, int id, int status){
 						parton_pt.push_back(pt);
 						parton_eta.push_back(eta);
 						parton_phi.push_back(phi);
 						parton_id.push_back(id);
+						parton_status.push_back(status);
 				}
 
 				TTree *ot;	
 				double weight;
 			   	float	pthat;
 				std::vector<float> ppt, peta, pphi;
-				std::vector<int> pchg, parton_id;
-				std::vector<float> parton_pt, parton_eta, parton_phi;
+				std::vector<int> pchg, parton_id, parton_status;
+				std::vector<float> parton_pt, parton_eta, parton_phi; 
 				bool keepParton = 0;
 };
 
@@ -39,6 +40,7 @@ void genParticle::init(TTree *t){
 				ot->Branch("parton_eta",&parton_eta);
 				ot->Branch("parton_phi",&parton_phi);
 				ot->Branch("parton_id", &parton_id);
+				ot->Branch("parton_status", &parton_status);
 		}
 }
 
@@ -52,6 +54,7 @@ void genParticle::clear(){
 				parton_eta.clear();
 				parton_phi.clear();
 				parton_id.clear();
+				parton_status.clear();
 		}
 }
 
