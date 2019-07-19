@@ -48,6 +48,7 @@ ParaSet makePSet_bjtc_pp_step23(){
 		TString fdijetMC_rg = "bJTC_PYTHIA6_RecGen_5TeV_dijetMC_WTAaxis_csvV2p9_28Jan19.root";
 		TString fdijetMC_gg = "bJTC_PYTHIA6_GenGen_5TeV_dijetMC_WTAaxis_csvV2p9_28Jan19.root";
 		TString fdijetMC_rr = "bJTC_PYTHIA6_RecRec_5TeV_dijetMC_WTAaxis_csvV2p9_28Jan19.root";
+		TString fbjetMC_JES = "bJTC_bjetMC_GenGen_5TeV_WTAaxis_csvV2p9_JES117_18July19.root";
 		TString fdata = "bJTC_pp_data_5TeV_wtaAxis_8May19.root";
 		//TString fdata = "bJTC_pp_data_5TeV_wtaAxis_28Jan19.root";
 		// gA stands for the gen-jet-axis
@@ -63,6 +64,7 @@ ParaSet makePSet_bjtc_pp_step23(){
 		st.setPara<TString>("step3output_folder_b", "/Users/tabris/frameLite/output/step3_p66/");
 		st.setPara<TString>("step3output_folder_in", "/Users/tabris/frameLite/output/step3/");
 		st.setPara<TString>("bjetMC_step2output_name", "Signal_PYTHIA6_bjetSample_allJets");
+		st.setPara<TString>("bjetMC_step2input_JES_gg_file", inputfolder+fbjetMC_JES);
 		st.setPara<TString>("bjetMC_step2input_rg_file", inputfolder+fbjetMC_rg);
 		st.setPara<TString>("bjetMC_step2input_gg_file", inputfolder+fbjetMC_gg);
 		st.setPara<TString>("bjetMC_step2input_rr_file", inputfolder+fbjetMC_rr);
