@@ -58,7 +58,8 @@ class texFile :
 
 if __name__ == "__main__" :
     ff = texFile()
-    ff.make_plot_summary("../output/doc/summary_step2", ".pdf", "pp5TeVjet80", "/Users/tabris/frameLite/output/step2/")
+    ff.make_plot_summary("../output/doc/summary_step2", ".pdf", "dijetMC", "/Users/tabris/frameLite/output/step2/")
+    #ff.make_plot_summary("../output/doc/summary_step2", ".pdf", "pp5TeVjet80", "/Users/tabris/frameLite/output/step2/")
     #ff.make_plot_summary("../output/doc/summary_step2", ".pdf", "bjetMC", "/Users/tabris/frameLite/output/step2/")
     #ff.make_plot_summary("../output/doc/summary_step2", ".pdf", "dijetMC", "/Users/tabris/frameLite/output/step2/")
     #ff.make_plot_summary("../output/doc/summary_step3", ".pdf", "bjtc", "/Users/tabris/frameLite/output/step3/")

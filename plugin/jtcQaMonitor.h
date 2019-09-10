@@ -23,6 +23,7 @@ class jtcQaMonitor{
 						 //								 delete it;
 						 //						 }
 				 }
+				 void style_overlay(matrixTH1Ptr* mt);
 				 multi_canvas<TH1>* overlay(TString savename = "", bool drawShape = 0);
 				 multi_canvas<TH1>* overlayR(TString savename = "Ra", TString opt = "");
 				 multi_canvas<TH1>* drawBkgErrorCheck(TString savenname = "");
@@ -188,6 +189,16 @@ void jtcQaMonitor::prepareCanvas(jtcTH1Player* j2, TString savename){
 		return ;
 }
 
+void jtcQaMonitor::style_overlay(matrixTH1Ptr* m2th){
+		for(int i=0; i<npt ; ++i){
+				for(int j=0; j<ncent; ++j){
+						m2th->at(i,j)->SetMarkerStyle(20);
+						m2th->at(i,j)->SetMarkerSize(0.8);
+						//m2th->at(i,j)->SetMarkerColor(color_vec[k]);
+				}
+		}
+}
+
 multi_canvas<TH1>* jtcQaMonitor::overlay(TString savename, bool drawShape){
 		//va_list ap;
 		//if( vm2th1.size() != 0) ncol = vm2th1[0]->Ncol(); nrow = vm2th1[0]->Nrow();
@@ -230,13 +241,14 @@ multi_canvas<TH1>* jtcQaMonitor::overlay(TString savename, bool drawShape){
 				m2th = vm2th1[k];
 				auto dopt = draw_opt[k];
 				if(doSystError) m2the = vm2th1e[k];
+				style_overlay(m2th);
 				for(int i=0; i<npt ; ++i){
 						for(int j=0; j<ncent; ++j){
 								if(!(m2th->isValid(i,j))) continue;
 								float grid = (max[i+j*npt]-min[i+j*npt])/16;
 								m2th->at(i,j)->SetLineColor(color_vec[k]);
-								m2th->at(i,j)->SetMarkerStyle(20);
-								m2th->at(i,j)->SetMarkerSize(0.8);
+								//m2th->at(i,j)->SetMarkerStyle(20);
+								//m2th->at(i,j)->SetMarkerSize(0.8);
 								m2th->at(i,j)->SetMarkerColor(color_vec[k]);
 								m2th->at(i,j)->GetXaxis()->SetNdivisions(xndivision);
 								m2th->at(i,j)->GetYaxis()->SetNdivisions(yndivision);
@@ -250,10 +262,12 @@ multi_canvas<TH1>* jtcQaMonitor::overlay(TString savename, bool drawShape){
 										cm->CD(index.i1, index.i2);
 								} else cm->cd(j+1);
 								m2th->at(i,j)->GetXaxis()->CenterTitle();
+								m2th->at(i,j)->GetYaxis()->SetTitle(Ytitle);
 								if(drawShape)m2th->at(i,j)->DrawNormalized(dopt+"same");
 								else m2th->at(i,j)->Draw(dopt+" same");
 								if(doSystError){
-										style0_for_systError(m2the->at(i,j), color_vec[k]);						m2the->at(i,j)->Draw("same e2");
+										style0_for_systError(m2the->at(i,j), color_vec[k]);						
+										m2the->at(i,j)->Draw("same e2");
 								}
 								if(makeTitle)  tx.DrawLatexNDC(xtitle, ytitle, pad_title(i,j));
 								if(i+j==0) drawLegend();
@@ -490,29 +504,29 @@ multi_canvas<TH1>* jtcQaMonitor::drawBkgErrorCheck(TString savename){
 
 multi_canvas<TH1>* jtcQaMonitor::jtc_check001(jtcTH1Player& j2, TString savename){
 		jtcTH1Player m2sig_deta("deta_"+savename, j2.Nrow(), j2.Ncol() );
-        jtcTH1Player m2sig_side_deta("deta_side_"+savename, j2.Nrow(), j2.Ncol() );
+		jtcTH1Player m2sig_side_deta("deta_side_"+savename, j2.Nrow(), j2.Ncol() );
 		for(int i=0; i<j2.Nrow(); ++i){
-                for(int j=0; j<j2.Ncol(); ++j){
-                        auto h = jtc_utility::projX(1, (TH2D*) j2.at(i,j), -1, .99, "e");
-                        h->Scale(0.5);
-                        h->GetXaxis()->SetTitleSize(0.06);
-                        h->GetXaxis()->SetLabelSize(0.06);
-                        m2sig_deta.add(h, i, j);
-                        h = jtc_utility::projX(1, (TH2D*)  j2.at(i,j), 1.4, 1.8, "e");
-                        h->Scale(1./0.4);
-                        h->GetXaxis()->SetTitleSize(0.06);
-                        h->GetXaxis()->SetLabelSize(0.06);
-                        errorDrivenRange(h, -2.5, 2.5);
-                        m2sig_side_deta.add(h, i, j);
-                }
-        }
+				for(int j=0; j<j2.Ncol(); ++j){
+						auto h = jtc_utility::projX(1, (TH2D*) j2.at(i,j), -1, .99, "e");
+						h->Scale(0.5);
+						h->GetXaxis()->SetTitleSize(0.06);
+						h->GetXaxis()->SetLabelSize(0.06);
+						m2sig_deta.add(h, i, j);
+						h = jtc_utility::projX(1, (TH2D*)  j2.at(i,j), 1.4, 1.8, "e");
+						h->Scale(1./0.4);
+						h->GetXaxis()->SetTitleSize(0.06);
+						h->GetXaxis()->SetLabelSize(0.06);
+						errorDrivenRange(h, -2.5, 2.5);
+						m2sig_side_deta.add(h, i, j);
+				}
+		}
 		autoYrange = 1;
-        addhLine(0);
-        x1=-3; x2 = 2.99;
+		addhLine(0);
+		x1=-3; x2 = 2.99;
 		addm2TH1(&m2sig_side_deta);
-        addm2TH1(&m2sig_deta);
-        doSave=0;
-        return overlay(savename);
+		addm2TH1(&m2sig_deta);
+		doSave=0;
+		return overlay(savename);
 }
 
 #endif

@@ -20,6 +20,7 @@ class bjtcAnalyzer_check : public bjtcAnalyzer_base{
 				 void trackingCorr();
 				 void residualCorr();
 				 void newAndOldPurity();
+				 void jesRawCheck();
 				 //		public : 
 };
 
@@ -399,7 +400,7 @@ void bjtcAnalyzer_check::js_check(){
 
 void bjtcAnalyzer_check::trackingCorr(){
 		auto bfinal = TFile::Open("/Users/tabris/frameLite/output/step3/bjtc_correction.root");
-		auto j2_trk = new jtcTH1Player("bjtc_yield_trkCorr");
+		auto j2_trk = new jtcTH1Player("bjtc_yield_trkCorr_*_*");
 		j2_trk->autoLoad(bfinal);
 		auto j2_err = (jtcTH1Player*) j2_trk->clone("j2_err");
 		j2_err->absError(.04);
@@ -407,6 +408,8 @@ void bjtcAnalyzer_check::trackingCorr(){
 		gQA->addm2TH1Error(j2_err);
 		gQA->addhLine(1);
 		gQA->setXrange(0, .99);
+		gQA->Ytitle = "tracking efficiency";
+//		gQA->overlay();
 		gAnaIO.saveCanvas(gQA->overlay(), "trkCorr");
 }
 
@@ -452,7 +455,7 @@ void bjtcAnalyzer_check::newAndOldPurity(){
 		gQA->addm2TH1ErrorPair(er0, er1);
 		 gQA->bookLegend(0.55, 0.55, 0.9, 0.83);
 		 gQA->setLowerYrange(0.85, 1.15);
-        gQA->addLegendPair("misid.=0.3", "misid.=0.37", 0 );
+        gQA->addLegendPair("misid.(MC)", "misid.(data)", 0 );
 		gQA->addRLine(1);
 //        gQA->addLegendEntry("P=0.7", 0);
 //        gQA->addLegendEntry("P=0.65", 1);
@@ -460,9 +463,35 @@ void bjtcAnalyzer_check::newAndOldPurity(){
         gQA->nrow = 1;
         gQA->setXrange(.0, .99);
         bjtc_pp_config::ptString[0]= "p^{track}_{T} > 1 GeV";
-        gQA->Ytitle = "R(#Delta r)";
+        gQA->Ytitle = "P(#Delta r)";
         gAnaIO.saveCanvas(gQA->overlayR(), "purity_overlay");
 
 }
 
+void bjtcAnalyzer_check::jesRawCheck(){
+		TString folder0 = "/Users/tabris/frameLite/output/step2/";
+		TFile * fjes = TFile::Open(folder0+"Signal_PYTHIA6_dijetSample_allJets_JES117_RecoJet_GenTrack.root");
+		TFile * fori = TFile::Open(folder0+"Signal_PYTHIA6_dijetSample_allJets_RecoJet_GenTrack.root");
+		auto jes117 = new jtcTH1Player("dr_signal_inclJet_RecoJet_GenTrack_pTweighted_noCorr_*_*");
+		auto jes120 = new jtcTH1Player("dr_signal_inclJet_RecoJet_GenTrack_pTweighted_noCorr_*_*");
+		jes117->autoLoad(fjes);
+		jes120->autoLoad(fori);
+//		auto dr_jes117 = jes117->drIntegral("dr_jes117", ndrbin, drbins);
+//		auto dr_jes120 = jes120->drIntegral("dr_jes120", ndrbin, drbins);
+		auto dr_jes117all = jes117->contractX("dr_jes117all");
+		auto dr_jes120all = jes120->contractX("dr_jes120all");
+		gQA->addm2TH1Pair(dr_jes117all, dr_jes120all);
+//		gQA->addm2TH1(jes120);
+		gQA->bookLegend(0.6, 0.6, 0.95, 0.8);
+		gQA->addLegendPair("shifted", "origin", 0);
+//		gQA->addLegendEntry("117", 0);
+//		gQA->addLegendEntry("120", 1);
+		gQA->fixYrange=0;
+		gQA->ncol = 1;
+		gQA->nrow = 1;
+		gQA->setXrange(.0, .99);
+//		gQA->setLowerYrange(.5, 2.);
+		bjtc_pp_config::ptString[0]= "p^{track}_{T} > 1 GeV";
+		gAnaIO.saveCanvas(gQA->overlayR(), "JESbjetDiff");
+}
 

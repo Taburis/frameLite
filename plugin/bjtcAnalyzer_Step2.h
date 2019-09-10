@@ -217,10 +217,10 @@ void bjtcAnalyzer_Step2::jerMCwf101(){
 }
 
 void bjtcAnalyzer_Step2::jesMCwf101(){
-		auto input_file = ps->getPara<TString>("bjetMC_step2input_JES_gg_file");
-		auto output_name = ps->getPara<TString>("bjetMC_step2output_name");
+		auto input_file = ps->getPara<TString>("dijetMC_step2input_JES_rg_file");
+		auto output_name = ps->getPara<TString>("dijetMC_step2output_name");
 		output_name = output_name+"_JES117";
-		wf001("bjetMC_JES117_",input_file, output_name, 1, 1);
+		wf001("dijetMC_JES117_",input_file, output_name, 0, 1);
 }
 
 void bjtcAnalyzer_Step2::bjetMCwf101(){
