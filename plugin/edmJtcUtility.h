@@ -4,9 +4,10 @@
 #include <iostream>
 #include "TH2.h"
 #include "TH2D.h"
+#include "TF1.h"
 #include "TH1D.h"
 #include "TString.h"
-#include "TString.h"
+#include "TMath.h"
 //#include "matrixTObjPtr.h"
 #include "matrixTH1Ptr.h"
 //#include "jtcTH1Player.h"
@@ -57,41 +58,6 @@ namespace jtc_utility {
 				if( isMix) histType = histType + "_mixing";
 				return histType;
 		}
-/*
-		TH2D* sideBandMixingTableMaker(TH2D* h2, float sidemin, float sidemax){
-				int s1 = h2->GetYaxis()->FindBin(sidemin);
-				int s2 = h2->GetYaxis()->FindBin(sidemax-0.001);
-				int dbin = s2-s1;
-				TH1D* temp = (TH1D*) h2->ProjectionX("_sideMix_deta", s1, s2);
-				TString name = h2->GetName();
-				TH2D* ME = (TH2D*) h2->Clone(name);
-				float mean=0;
-				// the middle position left/right edge
-				float midLeft = -0.15;
-				float midRight = 0.15;
-				int binLeft = temp->FindBin(midLeft);
-				int binRight= temp->FindBin(midRight)+1;
-				for(int i=binLeft;i<binRight; i++){
-						mean += temp->GetBinContent(i);
-				}
-				mean = mean/(temp->FindBin(midRight)-temp->FindBin(midLeft)+1)/h2->GetNbinsY();
-				temp->Scale(1.0/mean);
-				for(int ix=1; ix<h2->GetNbinsX()+1; ix++){
-						for(int iy=1; iy<h2->GetNbinsY()+1; iy++){
-								if( ix< binRight && ix>= binLeft){
-										ME->SetBinContent(ix, iy, 1);
-										ME->SetBinError(ix, iy, 0);
-								}
-								else{
-										ME->SetBinContent(ix, iy, temp->GetBinContent(ix)/dbin);
-										ME->SetBinError(ix, iy, temp->GetBinError(ix)/sqrt(dbin));
-								}
-						}
-				}
-				temp->Delete();
-				return ME;
-		}
-		*/
 		TH2D* mixingTableMaker(TH2D* mix, bool doSmooth){
 				float midLeft = -0.15;
 				float midRight = 0.15;
@@ -108,6 +74,7 @@ namespace jtc_utility {
 				for(int i=binLeft;i<binRight; i++){
 						mean += temp->GetBinContent(i);
 				}
+//				mean = temp->GetMaximum()/mix->GetNbinsY();
 				mean = mean /(temp->FindBin(midRight)-temp->FindBin(midLeft)+1)/mix->GetNbinsY();
 				temp->Scale(1.0/mean);
 				if(doSmooth){
@@ -118,8 +85,8 @@ namespace jtc_utility {
 												ME->SetBinError(ix, iy, 0);
 										}
 										else{
-												ME->SetBinContent(ix, iy, temp->GetBinContent(ix)/mix->GetNbinsY());
-												ME->SetBinError(ix, iy, temp->GetBinError(ix)/sqrt(mix->GetNbinsY()));
+									  		ME->SetBinContent(ix, iy, temp->GetBinContent(ix)/mix->GetNbinsY());
+									  		ME->SetBinError(ix, iy, temp->GetBinError(ix)/sqrt(mix->GetNbinsY()));
 										}
 								}
 						}
@@ -310,6 +277,7 @@ namespace jtc_utility {
 				return h;
 		}
 
+
 		void ring_corr( TH2D* h, TH1D* corr, float drmax = 1){
 				for(int k=1; k<h->GetNbinsX()+1; ++k){
 						for(int l=1; l<h->GetNbinsY()+1; ++l){
@@ -377,21 +345,115 @@ namespace jtc_utility {
 								float bincontent = temp->GetBinContent(ix);
 								float binerror = temp->GetBinError(ix);
 								// the empty side band bin will be filled by 1;
-								//if( bincontent == 0){
 								if( (ix< binRight && ix>= binLeft) || bincontent == 0){
 										ME->SetBinContent(ix, iy, 1);
 										ME->SetBinError(ix, iy, 0);
 								}
 								else{
-										ME->SetBinContent(ix, iy, bincontent);
-										ME->SetBinError(ix, iy, binerror);
-										//ME->SetBinContent(ix, iy, bincontent/dbin);
-										//ME->SetBinError(ix, iy, binerror/sqrt(dbin));
+								  	ME->SetBinContent(ix, iy, bincontent);
+								  	ME->SetBinError(ix, iy, binerror);
+								  	//ME->SetBinContent(ix, iy, bincontent/dbin);
+								  	//ME->SetBinError(ix, iy, binerror/sqrt(dbin));
 								}
 						}
 				}
 				temp->Delete();
 				return ME;
+		}
+		TH1D* drGeoTest(TH2D* signal, TH1D* drDist){
+				TString temp = drDist->GetName();
+				TH1D* drCounts = (TH1D*) drDist->Clone(temp+"_counts");
+				TH1D* area_ideal = (TH1D*) drDist->Clone("ideal_phase");
+				float dr;
+				float da;
+				for(int jx=1; jx<signal->GetNbinsX()+1; jx++){
+						for(int jy=1; jy<signal->GetNbinsY()+1; jy++){
+								dr = sqrt( pow(signal->GetXaxis()->GetBinCenter(jx),2) +\
+												pow(signal->GetYaxis()->GetBinCenter(jy),2));
+								da = (signal->GetXaxis()->GetBinWidth(jx))*(signal->GetYaxis()->GetBinWidth(jy));
+								drCounts->Fill(dr,da); // get aera in the dr region
+						}
+				}
+				for(int i=1; i<drCounts->GetNbinsX()+1; ++i){
+						float rlow = area_ideal->GetBinLowEdge(i);
+						float width = area_ideal->GetBinWidth(i);
+						float rup = rlow + width;
+						std::cout<<rup<<std::endl;
+						//      drCounts->SetBinContent(i, drCounts->GetBinContent(i));
+						area_ideal->SetBinContent(i, TMath::Pi()*(pow(rlow+width,2)-pow(rlow,2)));
+						area_ideal->SetBinError(i, 0);
+				}
+				TH1D* geoCorr = (TH1D*) area_ideal ->Clone("geoCorr");
+				geoCorr->Divide(drCounts);
+				for(int i=1; i<drCounts->GetNbinsX()+1; ++i){
+						geoCorr->SetBinError(i,0);
+				}
+				return geoCorr;
+		}
+
+		TF1* fitSignal1D(TH1* h, float x0, float x1){
+				TString name = h->GetName();
+				h->SetAxisRange(x0, x1, "X");
+				auto f1 = new TF1("func_"+name, "[0]*exp(-(log(x-[1])-[2])**2/[3])/(x-[1])+x*[4]", x0, x1);	
+				//				f1->SetParameter(0, 4);
+				f1->SetParameter(1, -0.05);
+				f1->SetParameter(2, 0.06);
+				f1->SetParameter(3, 1.5);
+				f1->SetParameter(4, 12);
+				//				f1->SetParameter(5, 1);
+
+				h->Fit(f1, "", "", x0, x1);
+				//				h->Draw();
+				//				f1->Draw("same");
+				return f1;
+		}
+
+		TH2D* makeSignal(const char * name , TH2D* h0, TF1* f1, float x0, float x1, TF1* f2, float y0, float y1){
+				TH2D* h = (TH2D*)h0->Clone(name); 
+				for(int i=1; i< h->GetNbinsX()+1; ++i){
+						for(int j=1; j< h->GetNbinsY()+1; ++j){
+								if( h->GetXaxis()->GetBinCenter(i) > x1 || h->GetXaxis()->GetBinCenter(i) < x0 || h->GetYaxis()->GetBinCenter(j) < y0 || h->GetYaxis()->GetBinCenter(j) > y1)  
+										h->SetBinContent(i, j ,0);
+								else {
+										float content = f1->Eval(h->GetXaxis()->GetBinCenter(i));
+										content = content*(f2->Eval(h->GetYaxis()->GetBinCenter(j)));
+										h->SetBinContent(i, j ,content);
+								}
+						}
+				}
+				return h;
+		}
+
+		void set2DConst(float x, TH1* h){
+				for(int i=1; i< h->GetNbinsX()+1; ++i){
+						for(int j=1; j< h->GetNbinsY()+1; ++j){
+								h->SetBinContent(i,j, x);
+								h->SetBinError(i,j, 0);
+						}
+				}
+		}
+
+
+		TH2D* rotate2D(TString name, TH2D* h0){
+				//auto xax = h0->GetXaxis()->GetXbins();
+				//auto yax = h0->GetYaxis()->GetXbins();
+				//Double_t * newx = new Double_t[yax->GetSize()];
+				//Double_t * newy = new Double_t[xax->GetSize()];
+				//cout<<"size: "<<yax->GetSize()<<endl;
+				//for(int i = 0; i<yax->GetSize(); ++i) newx[i] = yax->At(i);
+				//for(int i = 0; i<xax->GetSize(); ++i) newy[i] = xax->At(i);
+				//auto h = new TH2D(name, "", yax->GetSize(), newx, xax->GetSize(), newy);
+				auto h = new TH2D(name, "", 500, -5, 5, 200, -TMath::Pi()/2, 3*TMath::Pi()/2);
+
+				for(int i=1; i<h0->GetNbinsX()+1; ++i){
+						for(int j=1; j<h0->GetNbinsY()+1; ++j){
+								Double_t cont = h0->GetBinContent(i,j);
+								Double_t err = h0->GetBinError(i,j);
+								h->SetBinContent(j,i, cont);
+								h->SetBinError(j,i, err);
+						}
+				}
+				return h;
 		}
 }
 

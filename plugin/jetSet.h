@@ -7,13 +7,17 @@ class jetSet {
 		public : jetSet(){};
 				 ~jetSet(){};
 				 jetSet(const char * name, TTree* t,  bool keep){ getJetSet(name, t, keep); };
+				 jetSet(const char * name, TString cap, TTree* t,  bool keep){ getJetSet(name, cap, t, keep); };
 				 virtual void getJetSet(const char * name_, TTree* t, bool keep){
+						 return getJetSet(name_, "jt", t, keep);
+				 }
+				 virtual void getJetSet(const char * name_, TString cap, TTree* t, bool keep){
 						 name = name_;
 						 keepCandidate = keep;
 						 jtTree = t;
-						 jtTree->SetBranchAddress("jt_pt" , &jt_pt);
-						 jtTree->SetBranchAddress("jt_eta", &jt_eta);
-						 jtTree->SetBranchAddress("jt_phi", &jt_phi);
+						 jtTree->SetBranchAddress(cap+"_pt" , &jt_pt);
+						 jtTree->SetBranchAddress(cap+"_eta", &jt_eta);
+						 jtTree->SetBranchAddress(cap+"_phi", &jt_phi);
 						 if(keepCandidate){
 								 jtTree->SetBranchAddress("pfcand_indx" , &pfcand_indx);
 								 jtTree->SetBranchAddress("pfcand_pt" , &pfcand_pt);

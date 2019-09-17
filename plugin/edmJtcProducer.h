@@ -17,7 +17,7 @@ class edmJtcProducer: public edmMCBase{
 		public : 
 				struct histCase{
 						jetSet * set;
-						float weight = 0;
+						double weight = 0;
 						// current jet axis 
 						float jtpt, jteta, jtphi;
 						// current particle axis 
@@ -42,8 +42,7 @@ class edmJtcProducer: public edmMCBase{
 						delete hc.jet_eta;
 						delete hc.jet_phi;
 				}
-				virtual void beginJob();
-				virtual void endJob();
+				virtual void beginJob(); virtual void endJob();
 				virtual void analyzer();
 				void resetHC( histCase & hc){
 						hc.weight = 0; 
@@ -68,12 +67,12 @@ class edmJtcProducer: public edmMCBase{
 				}
 				bool jetAcceptanceCut(histCase &hc){
 						if(hc.jtpt<120) return 1;
-						if(fabs(hc.jteta)>2) return 1;
+						if(fabs(hc.jteta)>1.6) return 1;
 						return 0;
 				}
 				bool particleAcceptanceCut(histCase &hc){
 						if(hc.ppt<1) return 1;
-						if(fabs(hc.jteta)>2.6) return 1;
+						if(fabs(hc.peta)>2.4) return 1;
 						return 0;
 				}
 
@@ -164,6 +163,7 @@ void edmJtcProducer::beginJob(){
 		handleGenParticle("particle_tree");
 		auto jes4 = handleJetSet("ak4ES", 1);
 		regHist("ak4Escheme", hc, jes4);
+		hm->sumw2();
 }
 
 void edmJtcProducer::endJob(){

@@ -38,14 +38,14 @@ class edmMCBase : public rootEDMProducer{
 				 }
 				 virtual void handleGenParticle(const char * name);
 				 virtual void handleRecoTrack (const char * name);
-				 jetSet* handleJetSet(const char* name, bool keep = 0){
+				 virtual jetSet* handleJetSet(const char* name, bool keep = 0){
 						 auto tt= handle(name);
 						 _js[std::string(name)] = new jetSet(name, tt, keep);
 						 return _js[std::string(name)];
 				 }
 		public :
 				 TTree* gen_particle_t;
-				 float weight =0;
+				 double weight =0;
 				 float pthat =0;
 				 std::vector<float> *pt=0;
 				 std::vector<float> *eta=0;

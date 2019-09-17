@@ -72,6 +72,7 @@ class rootEDMFrame : public node{
 						 _done();
 						 return 0;
 				 };
+				 void close();
 		public :
 				 TFile* _infile;
 				 Long64_t EventMax = 1;

@@ -4,7 +4,8 @@ ROOT = -pthread -stdlib=libc++ -std=c++11 -m64 -I/Applications/root_v6.14.04/inc
 #LDFLAGS = -shared $(ROOT)
 #LPATH = $(shell echo /Users/tabris/xflow/core/src/)
 CC = g++
-INCLUDE= -I $(PWD)/interface/ -I $(PWD)/../plugin/
+FBASE =/Users/tabris/frameLite/
+INCLUDE= -I $(FBASE)/core/interface/ -I $(FBASE)/plugin/
 SRCS:= $(wildcard src/*.cc)
 BINS:= $(SRCS:src/%.cc=bin/%.o)
 #CFLAGSFORDYLIB = -c -shared -fpic $(ROOT)
@@ -15,7 +16,7 @@ bin/%.o: src/%.cc
 	$(CC) -c $< -o $@ -fpic $(INCLUDE) $(ROOT)
 
 libedm.so: $(wildcard bin/*.o)
-	$(CC) -shared bin/rootEDM.o -o ../lib/libedm.so $(ROOT) $(INCLUDE)
+	$(CC) -shared bin/rootEDM.o -o $(FBASE)/lib/libedm.so $(ROOT) $(INCLUDE)
 
 
 .PHONY: clean
