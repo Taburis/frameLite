@@ -21,6 +21,7 @@ class histManager {
 				template <typename T> T* regHist (const char* name, const char* title, int nbin, double x, double y);
 				template <typename T> T* regHist (const char* name, const char* title, int nbin, const float *bins);
 				template <typename T> T* regHist (const char* name, const char* title, int nbin, const Double_t *bins);
+				template <typename T> T* regHist (const char* name, const char* title, int nbin, const Double_t *bins, Int_t nbin2, Double_t ylow, Double_t yup);
 				template <typename T> T* regHist (const char* name, const char* title, int nx, double x1, double x2, 
 								int ny, double y1, double y2);
 				template <typename T> T* get(const char* name);
@@ -52,6 +53,13 @@ template <typename T> T* histManager::regHist (const char* name, const char* tit
 }
 template <typename T> T* histManager::regHist (const char* name, const char* title, int nbin, const Double_t* bins){
 		T *h = new T(name, title, nbin, bins);
+		th1.push_back(dynamic_cast<TH1*>(h));
+		hkey[name] = th1.back();
+		return h;
+}
+
+template <typename T> T* histManager::regHist (const char* name, const char* title, int nbin, const Double_t* bins, Int_t nbin2, Double_t ylow, Double_t yup){
+		T *h = new T(name, title, nbin, bins, nbin2, ylow, yup);
 		th1.push_back(dynamic_cast<TH1*>(h));
 		hkey[name] = th1.back();
 		return h;

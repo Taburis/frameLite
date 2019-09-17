@@ -60,6 +60,7 @@ class rootEDMFrame : public node{
 				 };
 				 void eventLoop();
 				 TFile* open(const char*);
+				 void close();
 				 TTree* regTree(const char* t);
 				 void addProducer(rootEDMProducer * );
 				 void addEventFilter(rootEDMEventFilter * );

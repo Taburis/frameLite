@@ -9,6 +9,10 @@ TFile* rootEDMFrame::open(const char * f){
 		return _infile;
 }
 
+void rootEDMFrame::close(){
+		_infile->Close();
+}
+
 TTree* rootEDMFrame::regTree(const char* tn){
 //		do not to use the add friend in case two branchs in different trees have the same name
 		if(_forest.find(tn) == _forest.end()){
@@ -69,7 +73,7 @@ void rootEDMFrame::eventLoop(){
 	//	TTree* t = (TTree*)_infile->Get("genParticleTree");
 		std::cout<<"starting the event loop.."<<std::endl;
 		for(Long64_t ievt=0; ievt< EventMax ; ++ievt){
-				if(ievt % 1000 == 0) std::cout<<"processing "<<ievt<<"th event.."<<std::endl;
+				if(ievt % 10000 == 0) std::cout<<"processing "<<ievt<<"th event.."<<std::endl;
 				for(auto _ip= _forest.begin(); _ip!= _forest.end(); ++_ip) {
 						((*_ip).second)->GetEntry(ievt); 
 				}
