@@ -13,9 +13,17 @@ namespace bjtc_Pythia8_cfg{
 		return 0;
 	}
 }
+//DBCode:
+// 0. Pythia8 dijet
+// 1. Pythia8 bjete
+// 2. Pythia6 bjete
+// 3. Pythia6 bjete
+// 4. Herwig  dijet 
+// 5. Data
 
 ParaSet init_bjetPythia8_cfg(){
 	ParaSet st("bjtc_cfg");	
+	st.setPara<int>("DBCode", 1);
 	st.setPara<int>("njtpTbin", bjtc_Pythia8_cfg::njtpTbin);
 	st.setPara<int>("npThat", bjtc_Pythia8_cfg::npThat);
 	st.setPara<const Float_t*>("jtpTbin", bjtc_Pythia8_cfg::jetptbin);
@@ -25,3 +33,12 @@ ParaSet init_bjetPythia8_cfg(){
 	return st;
 }
 
+ParaSet init_Herwig_cfg(){
+	ParaSet st("bjtc_cfg");	
+	st.setPara<int>("DBCode", 4);
+	st.setPara<int>("njtpTbin", bjtc_Pythia8_cfg::njtpTbin);
+	st.setPara<int>("npThat", bjtc_Pythia8_cfg::npThat);
+	st.setPara<const Float_t*>("jtpTbin", bjtc_Pythia8_cfg::jetptbin);
+	st.setPara<bool (*)(float)>("evtCut", &(bjtc_Pythia8_cfg::evtCut));
+	return st;
+}
