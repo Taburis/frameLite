@@ -4,11 +4,12 @@ import subprocess
 
 #listf = "list_5TeV2015pp_mixingTree.txt"
 #listf = "list_bjetPythia8_mixingTree.txt"
-listf = "list_PYTHIA8_bjet_mixingTree.txt"
-#listf = "list_Herwig_dijet_pT100to200.txt"
+#listf = "list_PYTHIA8_bjet_mixingTree.txt"
+#listf = "list_Herwig_dijet100to200_mixingTree.txt"
+listf = "list_PYTHIA8_dijet_mixingTree.txt"
 startline = 0
 
-execf = 'run.C'
+execf = 'run_Pythia8_dijet.C'
 
 listfs = open(listf).readlines()
 counter = 0

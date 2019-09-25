@@ -20,7 +20,7 @@ class qaAnalyzer{
 		TFile * f0, *f1;
 		ParaSet *ps;
 		TF1 *vzmcf, *vzdataf;
-		TH1F* hpthatRatio;
+		TH1F* hpthatRatio, *hvzRatio;
 		std::vector<float> pThatInterval, pThatEntries;
 		std::vector<Double_t>xsec;
 		TTree* cfgTree;
@@ -44,22 +44,24 @@ void qaAnalyzer::normalize(TH1* h){
 void qaAnalyzer::getVzWeight(){
 	TH1F* hvzmc = (TH1F*)f0->Get("vz");
 	TH1F* hvzdata = (TH1F*)f1->Get("vz");
-	vzmcf = new TF1("vzMC_fit", "gaus(0)", -15, 15);
-	vzdataf = new TF1("vzData_fit", "gaus(0)", -15, 15);
-	normalize(hvzmc);
-	normalize(hvzdata);
-	int bin0= hvzmc->FindBin(0.0);
-	float cont = hvzmc->GetBinContent(bin0);
-	vzmcf->SetParameters(cont, 0, 1);
-	vzdataf->SetParameters(cont, 0, 1);
-	auto c = new TCanvas("c", "vz distribution", 1000, 450);
-	c->Divide(2,1);
-c->cd(1);
-	style(hvzmc, "Vz", "dN/dvz/N", kBlue);
-	hvzmc->Fit(vzmcf);
-c->cd(2);
-	style(hvzdata, "Vz", "dN/dvz/N", kBlue);
-	hvzdata->Fit(vzdataf);
+//	vzmcf = new TF1("vzMC_fit", "gaus(0)", -15, 15);
+//	vzdataf = new TF1("vzData_fit", "gaus(0)", -15, 15);
+//	normalize(hvzmc);
+//	normalize(hvzdata);
+//	int bin0= hvzmc->FindBin(0.0);
+//	float cont = hvzmc->GetBinContent(bin0);
+//	vzmcf->SetParameters(cont, 0, 1);
+//	vzdataf->SetParameters(cont, 0, 1);
+//	auto c = new TCanvas("c", "vz distribution", 1000, 450);
+//	c->Divide(2,1);
+//c->cd(1);
+//	style(hvzmc, "Vz", "dN/dvz/N", kBlue);
+//	hvzmc->Fit(vzmcf);
+//c->cd(2);
+//	style(hvzdata, "Vz", "dN/dvz/N", kBlue);
+//	hvzdata->Fit(vzdataf);
+	hvzRatio = (TH1F*) hvzdata ->Clone("vzWeight");
+	hvzRatio->Divide(hvzmc);
 }
 
 void qaAnalyzer::getPThatWeight(){
@@ -78,21 +80,22 @@ void qaAnalyzer::getPThatWeight(){
 		xsec.push_back(xsec0[i]);				
 		pThatInterval.push_back(float(pthatEdge[i]));
 		float content = hpthatmc->GetBinContent(i+1);
-		if(DBCode == 1 && i == npthatbin-1) content = content / 1;
+		if(DBCode == 1 && i == npthatbin-1) content = content / 1.15;
 		pThatEntries.push_back(content);
 	}
 	xsec.push_back(0.0);
-	pThatInterval.push_back(999);
+	pThatInterval.push_back(99999);
 	cfgTree->Fill();
 }
 void qaAnalyzer::makePythiaConfig(TString ofstr){
 	auto wf = TFile::Open(ofstr, "recreate");
-	getVzWeight();
 	wf->cd();	
+	getVzWeight();
 	getPThatWeight();
 
-	vzdataf->Write();
-	vzmcf->Write();
+	//hvzRatio->Write();
+//	vzdataf->Write();
+//	vzmcf->Write();
 	wf->Write();
 	wf->Close();
 }
